@@ -1,0 +1,10 @@
+{
+  "example_pipeline": {
+    "pipeline": "custom_rag.pipelines._template.pipeline.RAGPipeline",
+    "config": {
+      "weaviate_collection": "ExampleCollection",
+      "db_env_var": "EXAMPLE_DB_URL",
+      "max_iterations": 10
+    }
+  }
+}
