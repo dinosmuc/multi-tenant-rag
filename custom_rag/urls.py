@@ -1,6 +1,6 @@
-# URL routing for custom RAG endpoints
+from django.urls import path
+from custom_rag import views
 
-# Placeholder endpoint to keep URLconf valid; replace with real routes later.
 urlpatterns = [
-    # path("example/", views.example, name="example"),
+    path("execute/", views.execute_pipeline, name="execute_pipeline"),
 ]
