@@ -1,7 +1,7 @@
-import json
 import importlib
+import json
 from pathlib import Path
-from typing import Any, Dict, Tuple, Type
+from typing import Any
 
 
 class PipelineRegistry:
@@ -15,7 +15,7 @@ class PipelineRegistry:
 
     def load_config(self) -> None:
         """Load pipeline configurations from pipelines.json."""
-        with open(self.config_path, "r") as f:
+        with open(self.config_path) as f:
             self.pipelines = json.load(f)
 
     def reload_config(self) -> None:
@@ -23,10 +23,8 @@ class PipelineRegistry:
         self.load_config()
 
     def get_pipeline(
-        self,
-        function_id: str,
-        request_data: Dict[str, Any]
-    ) -> Tuple[Type, Dict[str, Any], Dict[str, Any]]:
+        self, function_id: str, request_data: dict[str, Any]
+    ) -> tuple[type, dict[str, Any], dict[str, Any]]:
         """
         Get pipeline class, config, and context for a function_id.
 
@@ -53,7 +51,7 @@ class PipelineRegistry:
 
         return pipeline_class, config, context
 
-    def _import_pipeline_class(self, pipeline_path: str) -> Type:
+    def _import_pipeline_class(self, pipeline_path: str) -> type:
         """
         Dynamically import pipeline class from module path.
 
@@ -73,9 +71,9 @@ class PipelineRegistry:
             pipeline_class = getattr(module, class_name)
             return pipeline_class
         except (ValueError, ImportError, AttributeError) as e:
-            raise ValueError(f"Failed to import pipeline '{pipeline_path}': {e}")
+            raise ValueError(f"Failed to import pipeline '{pipeline_path}': {e}") from e
 
-    def _build_context(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
+    def _build_context(self, request_data: dict[str, Any]) -> dict[str, Any]:
         """
         Build context dictionary from request data.
 
@@ -86,17 +84,23 @@ class PipelineRegistry:
             Context dictionary
 
         Raises:
-            ValueError: If 'llm' model is not provided
+            ValueError: If required fields are not provided
         """
         llm = request_data.get("llm")
         if not llm:
             raise ValueError("'llm' model must be provided in request")
+
+        llm_provider = request_data.get("llm_provider")
+        if not llm_provider:
+            raise ValueError("'llm_provider' must be provided in request")
 
         return {
             "prompt_objects": request_data.get("prompt_objects", {}),
             "scope_variables": request_data.get("scope_variables", {}),
             "previous_prompt_outputs": request_data.get("previous_prompt_outputs", {}),
             "llm": llm,
+            "llm_provider": llm_provider,
+            "reasoning_effort": request_data.get("reasoning_effort"),
         }
 
 

@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict
+from typing import Any
 
 
 class BaseTool(ABC):
@@ -29,7 +29,7 @@ class BaseTool(ABC):
 
     @property
     @abstractmethod
-    def parameters(self) -> Dict[str, Any]:
+    def parameters(self) -> dict[str, Any]:
         """
         JSON schema of expected arguments.
 
@@ -39,7 +39,7 @@ class BaseTool(ABC):
         pass
 
     @abstractmethod
-    def execute(self, args: Dict[str, Any], context: Dict[str, Any]) -> Any:
+    def execute(self, args: dict[str, Any], context: dict[str, Any]) -> Any:
         """
         Execute the tool with given arguments and context.
 

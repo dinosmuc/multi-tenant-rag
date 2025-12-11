@@ -8,7 +8,10 @@ A scalable RAG (Retrieval-Augmented Generation) pipeline system for the BlueCall
 
 ```
 custom-rag/
-├── config/                      # Django project configuration
+├── .github/
+│   └── workflows/
+│       └── ci.yml                # GitHub Actions CI/CD
+├── config/                       # Django project configuration
 │   ├── __init__.py
 │   ├── settings.py              # Django settings
 │   ├── urls.py                  # Root URL configuration
@@ -19,26 +22,34 @@ custom-rag/
 │   ├── core/                    # Shared base classes
 │   │   ├── base_pipeline.py     # Abstract base for pipelines
 │   │   ├── base_tool.py         # Abstract base for tools
-│   │   └── agent_executor.py    # Agentic loop logic
+│   │   ├── agent_executor.py    # Agentic loop logic
+│   │   ├── llm_provider.py      # Abstract LLM provider
+│   │   ├── openai_provider.py   # OpenAI Responses API implementation
+│   │   └── provider_factory.py  # Dynamic provider creation
 │   ├── connectors/              # Database connectors
 │   │   ├── database.py          # SQLAlchemy wrapper
 │   │   └── weaviate_connector.py # Weaviate wrapper
 │   ├── pipelines/               # Company-specific implementations
-│   │   └── _template/           # Template for new pipelines
-│   │       ├── pipeline.py
-│   │       ├── config.py
-│   │       ├── models.py
-│   │       ├── tools/
-│   │       └── prompts/
+│   │   ├── _template/           # Template for new pipelines
+│   │   └── company_1/           # Example pipeline
 │   ├── urls.py                  # App URL routing
 │   ├── views.py                 # REST API endpoint
 │   ├── registry.py              # Pipeline loader
+│   ├── utils.py                 # Response helpers
 │   └── pipelines.json           # Pipeline config mapping
 │
+├── tests/                       # Pytest test suite
+│   ├── __init__.py
+│   ├── conftest.py              # Test fixtures
+│   ├── test_connectors.py       # Connector tests
+│   ├── test_registry.py         # Registry tests
+│   └── test_views.py            # Views tests
+│
 ├── manage.py                    # Django management script
-├── pyproject.toml               # Project config & dependencies
+├── pytest.ini                   # Pytest configuration
+├── pyproject.toml               # Project config
 ├── requirements.txt             # Python dependencies
-├── requirements-dev.txt         # Dev dependencies
+├── requirements-dev.txt         # Dev dependencies (incl. pytest)
 ├── .env.example                 # Environment variables template
 ├── .gitignore                   # Git ignore rules
 └── README.md                    # This file
@@ -47,10 +58,16 @@ custom-rag/
 ## Key Features
 
 - **Complete Isolation**: Each company's pipeline runs in isolation with no shared state
-- **Config-Driven**: All company-specific values come from configuration
+- **Multi-Provider Support**: Supports OpenAI (with extensibility for Anthropic, etc.)
+- **Dynamic Provider Selection**: Frontend controls which LLM provider to use
+- **Reasoning Models Support**: Full support for o1/o3 with reasoning_effort parameter
+- **Token Tracking**: Complete usage tracking for cost monitoring
+- **Config-Driven**: All company-specific values from configuration
 - **Fresh Connections**: New database connections per request
 - **Automatic Cleanup**: Resources released after each request using context managers
-- **Extensible**: Easy to add new pipelines without modifying core framework
+- **Standardized Errors**: Clean error responses with error codes
+- **Test Coverage**: Comprehensive pytest test suite
+- **CI/CD**: Automated testing and linting via GitHub Actions
 
 ## Prerequisites
 
@@ -86,13 +103,11 @@ source venv/bin/activate
 ### 3. Install dependencies
 
 ```bash
-# Recommended: install all dependencies (incl. dev tools)
+# Install all dependencies including dev tools (Recommended)
 pip install -r requirements-dev.txt
 
-# Optional: editable install (only if you adjust package discovery)
-# pip install -e ".[dev]"
-# To make this work you would need to configure package discovery
-# (because both `config` and `custom_rag` are top-level).
+# Or production only
+pip install -r requirements.txt
 ```
 
 ### 4. Configure environment variables
@@ -107,9 +122,28 @@ python -c "from django.core.management.utils import get_random_secret_key; print
 
 # Edit .env and add:
 # - Generated SECRET_KEY
-# - OPENAI_API_KEY
-# - WEAVIATE_URL
+# - OPENAI_API_KEY (REQUIRED)
+# - WEAVIATE_URL (REQUIRED)
+# - WEAVIATE_API_KEY (REQUIRED)
 # - Company database URLs
+```
+
+**Required Environment Variables:**
+```env
+# Django
+SECRET_KEY=your-generated-secret-key
+DEBUG=True
+ALLOWED_HOSTS=localhost,127.0.0.1
+
+# OpenAI (REQUIRED)
+OPENAI_API_KEY=sk-your-api-key-here
+
+# Weaviate (REQUIRED)
+WEAVIATE_URL=http://localhost:8080
+WEAVIATE_API_KEY=your-weaviate-api-key
+
+# Company Databases
+COMPANY1_DB_URL=mysql://user:password@host:port/database
 ```
 
 ### 5. Run Django migrations
@@ -118,13 +152,7 @@ python -c "from django.core.management.utils import get_random_secret_key; print
 python manage.py migrate
 ```
 
-### 6. Create superuser (optional)
-
-```bash
-python manage.py createsuperuser
-```
-
-### 7. Run development server
+### 6. Run development server
 
 ```bash
 python manage.py runserver
@@ -151,18 +179,20 @@ docker run -d \
 2. Create a cluster
 3. Copy the cluster URL and API key to your `.env` file
 
-## Running the Project
+## Running Tests
 
 ```bash
-# Make sure virtual environment is activated
-venv\Scripts\activate  # Windows
-source venv/bin/activate  # macOS/Linux
+# Run all tests
+pytest
 
-# Run development server
-python manage.py runserver
+# Run with verbose output
+pytest -v
 
-# Run with custom port
-python manage.py runserver 8001
+# Run specific test file
+pytest tests/test_connectors.py
+
+# Run with coverage
+pytest --cov=custom_rag tests/
 ```
 
 ## Code Quality Tools
@@ -177,32 +207,154 @@ ruff check .
 # Auto-fix linting issues
 ruff check --fix .
 
-# Run tests
-pytest
+# Run all quality checks (what CI runs)
+black --check . && ruff check . && pytest tests/
 ```
-
-## Adding a New Pipeline
-
-1. Copy the `_template` folder to a new company folder
-2. Implement company-specific models, tools, and prompts
-3. Add configuration to `pipelines.json`
-4. Add database URL to environment variables
-
-See `project.md` for detailed documentation.
 
 ## API Endpoint
 
-```
+### Request Format
+
+```http
 POST /custom_rag/execute/
+Content-Type: application/json
+
 {
-  "function_id": "company_rag_function",
-  "prompt_objects": {...},
-  "scope_variables": {...},
-  "previous_prompt_outputs": {...},
-  "llm": "gpt-4"
+  "function_id": "company_1",
+  "llm_provider": "openai",
+  "llm": "gpt-4o",
+  "reasoning_effort": "medium",  // Optional, for o1/o3 models
+  "prompt_objects": {
+    "query": "What products do we have?"
+  },
+  "scope_variables": {},
+  "previous_prompt_outputs": {}
 }
+```
+
+### Success Response
+
+```json
+{
+  "success": true,
+  "statusCode": 200,
+  "data": {
+    "output": "We have the following products...",
+    "metadata": {
+      "iterations": 5,
+      "tools_used": ["semantic_search", "get_product_details"]
+    }
+  },
+  "usage": {
+    "input_tokens": 123,
+    "output_tokens": 456,
+    "total_tokens": 579
+  }
+}
+```
+
+### Error Response
+
+```json
+{
+  "success": false,
+  "statusCode": 400,
+  "error": {
+    "code": "INVALID_REQUEST",
+    "message": "Missing 'function_id' in request"
+  },
+  "usage": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "total_tokens": 0
+  }
+}
+```
+
+### Error Codes
+
+- `INVALID_REQUEST` - Missing or invalid request parameters
+- `PIPELINE_NOT_FOUND` - Pipeline function_id not found
+- `PROVIDER_NOT_SUPPORTED` - LLM provider not supported
+- `INVALID_JSON` - Request body is not valid JSON
+- `INTERNAL_ERROR` - Unexpected server error
+
+## Adding a New Pipeline
+
+1. Copy the `_template` folder to a new company folder:
+   ```bash
+   cp -r custom_rag/pipelines/_template custom_rag/pipelines/company_name
+   ```
+
+2. Implement company-specific components:
+   - `models.py` - SQLAlchemy models
+   - `config.py` - Configuration constants
+   - `tools/` - Custom tools
+   - `prompts/system_prompt.py` - System prompt
+   - `pipeline.py` - Pipeline implementation
+
+3. Add configuration to `pipelines.json`:
+   ```json
+   {
+     "company_name_rag": {
+       "pipeline": "custom_rag.pipelines.company_name.pipeline.RAGPipeline",
+       "config": {
+         "weaviate_collection": "CompanyNameCollection",
+         "db_env_var": "COMPANY_NAME_DB_URL",
+         "max_iterations": 100
+       }
+     }
+   }
+   ```
+
+4. Add database URL to `.env`:
+   ```env
+   COMPANY_NAME_DB_URL=mysql://user:password@host:port/database
+   ```
+
+See `project.md` for detailed documentation.
+
+## CI/CD
+
+GitHub Actions automatically runs on every push and PR:
+
+✅ **Ruff** - Code linting
+✅ **Black** - Code formatting check
+✅ **Pytest** - Full test suite
+
+PRs must pass all checks before merging to main.
+
+## Development Workflow
+
+1. Create feature branch
+2. Make changes
+3. Run tests locally: `pytest`
+4. Format code: `black .`
+5. Check linting: `ruff check .`
+6. Commit and push
+7. GitHub Actions runs automatically
+8. Create PR when checks pass
+
+## Architecture Overview
+
+```
+Request → Views → Registry → Pipeline Factory
+                      ↓
+                  Pipeline (with context manager)
+                      ↓
+              Provider Factory → OpenAI/Anthropic
+                      ↓
+              Agent Executor (agentic loop)
+                      ↓
+              Tools (semantic search, DB queries, etc.)
+                      ↓
+                  Response with usage tracking
 ```
 
 ## License
 
 Proprietary - BlueCallom
+
+## Support
+
+For issues or questions, please contact the development team or refer to `project.md` for detailed documentation.

@@ -1,5 +1,6 @@
 import os
-from typing import Any, Dict, List, Optional
+from typing import Any
+
 import weaviate
 from weaviate.classes.query import Filter
 
@@ -15,7 +16,7 @@ class WeaviateConnector:
             collection_name: Name of the Weaviate collection to use
         """
         self.collection_name = collection_name
-        self.client: Optional[weaviate.WeaviateClient] = None
+        self.client: weaviate.WeaviateClient | None = None
         self.collection = None
         self._connect()
 
@@ -39,9 +40,9 @@ class WeaviateConnector:
     def semantic_search(
         self,
         query: str,
-        filters: Optional[Dict[str, Any]] = None,
+        filters: dict[str, Any] | None = None,
         top_k: int = 5,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Perform semantic search on the collection.
 
@@ -65,18 +66,24 @@ class WeaviateConnector:
 
         results = []
         for obj in response.objects:
-            results.append({
-                "id": str(obj.uuid),
-                "properties": obj.properties,
-                "metadata": {
-                    "score": obj.metadata.score if hasattr(obj.metadata, "score") else None,
-                    "distance": obj.metadata.distance if hasattr(obj.metadata, "distance") else None,
-                },
-            })
+            results.append(
+                {
+                    "id": str(obj.uuid),
+                    "properties": obj.properties,
+                    "metadata": {
+                        "score": obj.metadata.score
+                        if hasattr(obj.metadata, "score")
+                        else None,
+                        "distance": obj.metadata.distance
+                        if hasattr(obj.metadata, "distance")
+                        else None,
+                    },
+                }
+            )
 
         return results
 
-    def get_by_ids(self, ids: List[str]) -> List[Dict[str, Any]]:
+    def get_by_ids(self, ids: list[str]) -> list[dict[str, Any]]:
         """
         Retrieve objects by their IDs.
 
@@ -91,16 +98,18 @@ class WeaviateConnector:
             try:
                 obj = self.collection.query.fetch_object_by_id(obj_id)
                 if obj:
-                    results.append({
-                        "id": str(obj.uuid),
-                        "properties": obj.properties,
-                    })
+                    results.append(
+                        {
+                            "id": str(obj.uuid),
+                            "properties": obj.properties,
+                        }
+                    )
             except Exception:
                 continue
 
         return results
 
-    def _build_filter(self, filters: Dict[str, Any]) -> Filter:
+    def _build_filter(self, filters: dict[str, Any]) -> Filter:
         """
         Build Weaviate filter from dict.
 

@@ -60,10 +60,12 @@ POST /custom_rag/execute/
 
 {
   "function_id": "<rag_function_name>",
+  "llm_provider": "<provider_name>",       // REQUIRED: "openai", "anthropic"
+  "llm": "<model_name>",                   // REQUIRED: "gpt-4o", "o3", etc.
+  "reasoning_effort": "<reasoning_effort>", // OPTIONAL: "low", "medium", "high"
   "prompt_objects": { ... },
   "scope_variables": { ... },
-  "previous_prompt_outputs": { ... },
-  "llm": "<model_name>"
+  "previous_prompt_outputs": { ... }
 }
 ```
 
@@ -91,6 +93,8 @@ blcAPIPython/gptblue/
 │   │   ├── base_pipeline.py                 # Abstract base class for all pipelines
 │   │   ├── base_tool.py                     # Abstract base class for all tools
 │   │   └── agent_executor.py                # Agentic loop logic
+│   │   └── llm_provider.py
+│   │   └── openai_provider.py  
 │   │
 │   ├── connectors/
 │   │   ├── __init__.py
@@ -100,19 +104,7 @@ blcAPIPython/gptblue/
 │   └── pipelines/
 │       ├── __init__.py
 │       │
-│       ├── _template/                       # Template for new pipelines
-│       │   ├── __init__.py
-│       │   ├── pipeline.py
-│       │   ├── config.py
-│       │   ├── models.py
-│       │   ├── tools/
-│       │   │   ├── __init__.py
-│       │   │   └── example_tool.py
-│       │   └── prompts/
-│       │       ├── __init__.py
-│       │       └── system_prompt.py
-│       │
-│       ├── {company_a}/
+│       ├── {company_1}/
 │       │   ├── __init__.py
 │       │   ├── pipeline.py
 │       │   ├── config.py
@@ -717,8 +709,451 @@ No changes to core framework needed.
 
 ---
 
-## 11. Version History
+## 11. Provider System & Dynamic Selection
+
+### 11.1 LLM Provider Architecture
+
+The system supports multiple LLM providers through an abstraction layer:
+
+```
+LLMProvider (abstract base class)
+    ├── OpenAIProvider (Responses API)
+    └── AnthropicProvider (future)
+```
+
+**Purpose:** Allows frontend to dynamically select which LLM provider to use per request.
+
+### 11.2 core/llm_provider.py
+
+**Abstract base class** that all providers must implement:
+
+```python
+class LLMProvider:
+    def __init__(self, model: str)
+
+    @abstractmethod
+    def execute_with_tools(
+        instructions: str,
+        user_message: str,
+        tools: List[BaseTool],
+        max_iterations: int
+    ) -> Dict[str, Any]
+```
+
+### 11.3 core/openai_provider.py
+
+**OpenAI implementation** using Responses API:
+
+**Features:**
+- Uses Responses API (not Chat Completions)
+- Supports `reasoning_effort` parameter for o1/o3 models
+- Tracks token usage across all iterations
+- Returns usage in response
+
+**Reasoning Effort Levels:**
+- `low` - Faster, less thorough
+- `medium` - Balanced (default)
+- `high` - Most thorough, slowest
+
+### 11.4 core/provider_factory.py
+
+**Factory pattern** for creating provider instances:
+
+```python
+ProviderFactory.create_provider(
+    provider_name="openai",
+    model="gpt-4o",
+    reasoning_effort="medium"
+)
+```
+
+**Currently Supported:**
+- `openai` - OpenAI Responses API
+
+**Future Support:**
+- `anthropic` - Claude API
+- Custom providers as needed
+
+### 11.5 Request Requirements
+
+**Frontend MUST provide:**
+
+| Field | Type | Required | Purpose |
+|-------|------|----------|---------|
+| `function_id` | string | YES | Pipeline identifier |
+| `llm_provider` | string | YES | Provider name ("openai") |
+| `llm` | string | YES | Model name ("gpt-4o") |
+| `reasoning_effort` | string | NO | For reasoning models |
+| `prompt_objects` | object | YES | User input data |
+
+**Example:**
+```json
+{
+  "function_id": "company_1",
+  "llm_provider": "openai",
+  "llm": "o3",
+  "reasoning_effort": "high",
+  "prompt_objects": {
+    "query": "Find relevant products"
+  }
+}
+```
+
+---
+
+## 12. Error Handling & Response Format
+
+### 12.1 Standardized Response Format
+
+**All responses** follow a consistent structure with token tracking.
+
+### 12.2 Success Response
+
+```json
+{
+  "success": true,
+  "statusCode": 200,
+  "data": {
+    "output": "The final response from the agent",
+    "metadata": {
+      "iterations": 5,
+      "tools_used": ["tool1", "tool2"]
+    }
+  },
+  "usage": {
+    "input_tokens": 123,
+    "output_tokens": 456,
+    "total_tokens": 579
+  }
+}
+```
+
+### 12.3 Error Response
+
+```json
+{
+  "success": false,
+  "statusCode": 400,
+  "error": {
+    "code": "INVALID_REQUEST",
+    "message": "Missing 'function_id' in request"
+  },
+  "usage": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "total_tokens": 0
+  }
+}
+```
+
+### 12.4 Error Codes
+
+| Code | Status | Description |
+|------|--------|-------------|
+| `INVALID_REQUEST` | 400 | Missing or invalid request parameters |
+| `PIPELINE_NOT_FOUND` | 404 | Pipeline function_id not found in registry |
+| `PROVIDER_NOT_SUPPORTED` | 400 | LLM provider not supported |
+| `INVALID_JSON` | 400 | Request body is not valid JSON |
+| `INTERNAL_ERROR` | 500 | Unexpected server error |
+
+### 12.5 utils.py - Response Helpers
+
+**Purpose:** Centralized response formatting.
+
+**Classes:**
+- `ErrorCodes` - Standard error code constants
+- `success_response()` - Creates success response
+- `error_response()` - Creates error response
+
+**Usage in views:**
+```python
+from custom_rag.utils import ErrorCodes, error_response, success_response
+
+# Success
+return success_response(
+    data={"output": "result"},
+    usage={"input_tokens": 100, "output_tokens": 200}
+)
+
+# Error
+return error_response(
+    code=ErrorCodes.INVALID_REQUEST,
+    message="Missing function_id",
+    status=400
+)
+```
+
+---
+
+## 13. Token Tracking & Usage Monitoring
+
+### 13.1 Purpose
+
+Track token usage for:
+- Cost monitoring
+- Optimization
+- Billing/reporting
+
+### 13.2 Where Tokens Are Tracked
+
+**OpenAI Provider** tracks across all iterations:
+
+```python
+self.total_input_tokens = 0
+self.total_output_tokens = 0
+
+# For each API call
+self.total_input_tokens += response.usage.input_tokens
+self.total_output_tokens += response.usage.output_tokens
+```
+
+### 13.3 Token Data Flow
+
+```
+OpenAI API Response
+    ↓
+Provider accumulates tokens
+    ↓
+Returned in execute_with_tools()
+    ↓
+Pipeline passes to views
+    ↓
+Included in API response
+```
+
+### 13.4 Usage Object Structure
+
+```json
+"usage": {
+  "input_tokens": 123,
+  "output_tokens": 456,
+  "total_tokens": 579
+}
+```
+
+**Always included** in responses (even errors, where it's 0).
+
+---
+
+## 14. Testing with Pytest
+
+### 14.1 Test Structure
+
+```
+tests/
+├── conftest.py          # Fixtures and configuration
+├── test_connectors.py   # Database and Weaviate tests
+├── test_registry.py     # Registry and context building
+└── test_views.py        # API endpoint tests
+```
+
+### 14.2 Test Coverage
+
+**Connectors (6 tests):**
+- Database initialization
+- Session management
+- Resource cleanup
+- Weaviate connection
+- Semantic search
+- Client closure
+
+**Registry (6 tests):**
+- Config loading
+- Pipeline lookup
+- Context building
+- Required field validation
+- Optional field handling
+
+**Views (5 tests):**
+- Successful execution
+- Missing parameters
+- Invalid JSON
+- Pipeline not found
+- Internal errors
+
+### 14.3 Running Tests
+
+```bash
+# All tests
+pytest
+
+# Verbose output
+pytest -v
+
+# Specific test file
+pytest tests/test_connectors.py
+
+# With coverage
+pytest --cov=custom_rag tests/
+```
+
+### 14.4 Test Fixtures (conftest.py)
+
+**Provides:**
+- `mock_database_url` - In-memory SQLite
+- `mock_weaviate_client` - Mocked Weaviate
+- `mock_openai_client` - Mocked OpenAI responses
+- `sample_request_data` - Standard request
+- `sample_pipeline_config` - Standard config
+- `setup_test_env` - Environment variables
+
+**All tests run with:**
+- Isolated environment
+- Mocked external dependencies
+- No real API calls
+- Fast execution
+
+---
+
+## 15. CI/CD with GitHub Actions
+
+### 15.1 Workflow Configuration
+
+**File:** `.github/workflows/ci.yml`
+
+**Triggers:**
+- Push to `main` or `develop`
+- Pull requests to `main`
+
+### 15.2 Pipeline Steps
+
+| Step | Tool | Purpose |
+|------|------|---------|
+| 1 | Checkout | Clone repository |
+| 2 | Setup Python | Install Python 3.11 |
+| 3 | Install Dependencies | Install requirements |
+| 4 | Ruff | Lint code |
+| 5 | Black | Check formatting |
+| 6 | Pytest | Run tests |
+
+### 15.3 Quality Gates
+
+**PR cannot merge if:**
+- ❌ Ruff finds linting issues
+- ❌ Black finds formatting issues
+- ❌ Any test fails
+
+### 15.4 Local Development
+
+**Before pushing, run:**
+
+```bash
+# Format code
+black .
+
+# Check linting
+ruff check .
+
+# Run tests
+pytest tests/
+
+# All checks (what CI runs)
+black --check . && ruff check . && pytest tests/
+```
+
+### 15.5 pytest.ini Configuration
+
+```ini
+[pytest]
+DJANGO_SETTINGS_MODULE = config.settings
+python_files = tests.py test_*.py *_tests.py
+testpaths = tests
+addopts = --verbose --strict-markers --tb=short
+```
+
+---
+
+## 16. Updated Architecture Flow
+
+### 16.1 Complete Request Flow
+
+```
+┌─────────────────────────────────────────┐
+│ 1. Frontend Request                      │
+│    - function_id                         │
+│    - llm_provider (NEW)                  │
+│    - llm                                 │
+│    - reasoning_effort (NEW, optional)    │
+│    - prompt_objects                      │
+└──────────────┬──────────────────────────┘
+               ↓
+┌─────────────────────────────────────────┐
+│ 2. Views (views.py)                      │
+│    - Parse request                       │
+│    - Call registry                       │
+└──────────────┬──────────────────────────┘
+               ↓
+┌─────────────────────────────────────────┐
+│ 3. Registry (registry.py)                │
+│    - Validate llm_provider (NEW)         │
+│    - Validate llm                        │
+│    - Build context                       │
+│    - Load pipeline class                 │
+└──────────────┬──────────────────────────┘
+               ↓
+┌─────────────────────────────────────────┐
+│ 4. Pipeline.__enter__()                  │
+│    - Create DB connection                │
+│    - Create Weaviate connection          │
+│    - Load tools                          │
+└──────────────┬──────────────────────────┘
+               ↓
+┌─────────────────────────────────────────┐
+│ 5. Pipeline.execute()                    │
+│    - Get system prompt                   │
+│    - Create provider via factory (NEW)   │
+│    - Create agent executor               │
+│    - Call executor.execute()             │
+└──────────────┬──────────────────────────┘
+               ↓
+┌─────────────────────────────────────────┐
+│ 6. Provider Factory (NEW)                │
+│    - Select provider based on name       │
+│    - Create provider instance            │
+│    - Pass model & reasoning_effort       │
+└──────────────┬──────────────────────────┘
+               ↓
+┌─────────────────────────────────────────┐
+│ 7. Agent Executor                        │
+│    - Call provider.execute_with_tools()  │
+│    - Pass instructions, message, tools   │
+└──────────────┬──────────────────────────┘
+               ↓
+┌─────────────────────────────────────────┐
+│ 8. OpenAI Provider (NEW)                 │
+│    - Agentic loop with Responses API     │
+│    - Track tokens (NEW)                  │
+│    - Handle reasoning_effort (NEW)       │
+│    - Return result with usage            │
+└──────────────┬──────────────────────────┘
+               ↓
+┌─────────────────────────────────────────┐
+│ 9. Pipeline.__exit__()                   │
+│    - Close DB connection                 │
+│    - Close Weaviate connection           │
+│    - Cleanup resources                   │
+└──────────────┬──────────────────────────┘
+               ↓
+┌─────────────────────────────────────────┐
+│ 10. Views Response (NEW FORMAT)          │
+│    - Format with utils.py helpers        │
+│    - Include usage tokens                │
+│    - Standard error codes                │
+└──────────────┬──────────────────────────┘
+               ↓
+┌─────────────────────────────────────────┐
+│ 11. Frontend Receives                    │
+│    - success/error status                │
+│    - output data                         │
+│    - usage metrics                       │
+└─────────────────────────────────────────┘
+```
+
+---
+
+## 17. Version History
 
 | Version | Date | Changes |
 |---------|------|---------|
 | 1.0 | - | Initial version |
+| 2.0 | - | Added provider abstraction, dynamic provider selection, reasoning effort support, token tracking, standardized error responses, pytest test suite, GitHub Actions CI/CD |

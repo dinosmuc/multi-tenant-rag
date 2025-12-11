@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List
+from typing import Any
+
 from custom_rag.core.base_tool import BaseTool
 
 
@@ -20,9 +21,9 @@ class LLMProvider(ABC):
         self,
         instructions: str,
         user_message: str,
-        tools: List[BaseTool],
+        tools: list[BaseTool],
         max_iterations: int,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Execute agentic loop with tools.
 

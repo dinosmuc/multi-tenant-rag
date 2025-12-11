@@ -1,1 +1,0 @@
-# Company-specific configuration constants

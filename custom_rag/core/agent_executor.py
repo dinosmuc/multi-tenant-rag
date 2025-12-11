@@ -1,4 +1,5 @@
-from typing import Any, Dict, List
+from typing import Any
+
 from custom_rag.core.base_tool import BaseTool
 from custom_rag.core.llm_provider import LLMProvider
 
@@ -8,7 +9,7 @@ class AgentExecutor:
 
     def __init__(
         self,
-        tools: List[BaseTool],
+        tools: list[BaseTool],
         system_prompt: str,
         llm_provider: LLMProvider,
         max_iterations: int = 100,
@@ -27,7 +28,7 @@ class AgentExecutor:
         self.llm_provider = llm_provider
         self.max_iterations = max_iterations
 
-    def execute(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def execute(self, context: dict[str, Any]) -> dict[str, Any]:
         """
         Run the agentic loop.
 
@@ -41,7 +42,7 @@ class AgentExecutor:
 
         # Update tools with context
         for tool in self.tools:
-            if hasattr(tool, 'context'):
+            if hasattr(tool, "context"):
                 tool.context = context
 
         result = self.llm_provider.execute_with_tools(

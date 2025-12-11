@@ -1,7 +1,6 @@
-from typing import Optional
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm import Session, sessionmaker
 
 
 class DatabaseConnector:
@@ -16,9 +15,9 @@ class DatabaseConnector:
                               (e.g., 'mysql://user:pass@host:port/db')
         """
         self.connection_string = connection_string
-        self.engine: Optional[Engine] = None
-        self._session_maker: Optional[sessionmaker] = None
-        self._session: Optional[Session] = None
+        self.engine: Engine | None = None
+        self._session_maker: sessionmaker | None = None
+        self._session: Session | None = None
         self._initialize()
 
     def _initialize(self) -> None:

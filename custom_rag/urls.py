@@ -1,4 +1,5 @@
 from django.urls import path
+
 from custom_rag import views
 
 urlpatterns = [

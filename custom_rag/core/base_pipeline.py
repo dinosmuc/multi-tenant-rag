@@ -1,6 +1,7 @@
 import os
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional
+from typing import Any
+
 from custom_rag.connectors.database import DatabaseConnector
 from custom_rag.connectors.weaviate_connector import WeaviateConnector
 from custom_rag.core.base_tool import BaseTool
@@ -9,7 +10,7 @@ from custom_rag.core.base_tool import BaseTool
 class BasePipeline(ABC):
     """Abstract base class for all RAG pipelines."""
 
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: dict[str, Any]):
         """
         Initialize pipeline with configuration.
 
@@ -17,9 +18,9 @@ class BasePipeline(ABC):
             config: Pipeline configuration from pipelines.json
         """
         self.config = config
-        self.db: Optional[DatabaseConnector] = None
-        self.weaviate: Optional[WeaviateConnector] = None
-        self.tools: List[BaseTool] = []
+        self.db: DatabaseConnector | None = None
+        self.weaviate: WeaviateConnector | None = None
+        self.tools: list[BaseTool] = []
 
     def __enter__(self):
         """
@@ -62,7 +63,7 @@ class BasePipeline(ABC):
         self.tools = []
 
     @abstractmethod
-    def get_tools(self) -> List[BaseTool]:
+    def get_tools(self) -> list[BaseTool]:
         """
         Return list of tool instances for this pipeline.
 
@@ -82,7 +83,7 @@ class BasePipeline(ABC):
         pass
 
     @abstractmethod
-    def execute(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def execute(self, context: dict[str, Any]) -> dict[str, Any]:
         """
         Execute the pipeline.
 
