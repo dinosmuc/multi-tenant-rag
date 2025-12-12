@@ -1,6 +1,6 @@
 # Custom RAG Pipeline System
 
-A RAG (Retrieval-Augmented Generation) pipeline system for the BlueCallom platform. This is a standalone Django project that provides AI-powered product catalog search and question answering.
+A RAG (Retrieval-Augmented Generation) pipeline system for the BlueCallom platform.
 
 ## Prerequisites
 
