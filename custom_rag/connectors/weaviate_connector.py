@@ -24,9 +24,12 @@ class WeaviateConnector:
         """Establish connection to Weaviate."""
         weaviate_url = os.getenv("WEAVIATE_URL", "http://localhost:8080")
         weaviate_api_key = os.getenv("WEAVIATE_API_KEY")
+        openai_api_key = os.getenv("OPENAI_API_KEY")
 
         # Determine if this is a cloud instance or local
-        is_cloud = "weaviate.cloud" in weaviate_url or "weaviate.network" in weaviate_url
+        is_cloud = (
+            "weaviate.cloud" in weaviate_url or "weaviate.network" in weaviate_url
+        )
 
         if is_cloud:
             # For Weaviate Cloud, use connect_to_weaviate_cloud
@@ -34,6 +37,9 @@ class WeaviateConnector:
             self.client = weaviate.connect_to_weaviate_cloud(
                 cluster_url=cluster_url,
                 auth_credentials=weaviate.auth.AuthApiKey(weaviate_api_key),
+                headers={"X-OpenAI-Api-Key": openai_api_key}
+                if openai_api_key
+                else None,
             )
         else:
             # For local/custom Weaviate instances
@@ -47,7 +53,12 @@ class WeaviateConnector:
                 grpc_host=host,
                 grpc_port=443 if is_secure else 50051,
                 grpc_secure=is_secure,
-                auth_credentials=weaviate.auth.AuthApiKey(weaviate_api_key) if weaviate_api_key else None,
+                auth_credentials=weaviate.auth.AuthApiKey(weaviate_api_key)
+                if weaviate_api_key
+                else None,
+                headers={"X-OpenAI-Api-Key": openai_api_key}
+                if openai_api_key
+                else None,
             )
 
         self.collection = self.client.collections.get(self.collection_name)

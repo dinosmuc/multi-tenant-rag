@@ -92,18 +92,22 @@ class OpenAIProvider(LLMProvider):
             if self.reasoning_effort:
                 request_params["reasoning"] = {"effort": self.reasoning_effort}
 
-            logger.info(f"📡 API Request params:")
+            logger.info("📡 API Request params:")
             logger.info(f"  - model: {request_params.get('model')}")
             logger.info(f"  - input_type: {type(input_data).__name__}")
-            logger.info(f"  - input_length: {len(input_data) if isinstance(input_data, list) else len(str(input_data))}")
+            logger.info(
+                f"  - input_length: {len(input_data) if isinstance(input_data, list) else len(str(input_data))}"
+            )
             logger.info(f"  - tools_count: {len(openai_tools) if openai_tools else 0}")
 
             response = self.client.responses.create(**request_params)
 
             # Add response output to input list for next iteration
-            if hasattr(response, 'output'):
+            if hasattr(response, "output"):
                 input_list += response.output
-                logger.info(f"📝 Added {len(response.output)} items to input list (total: {len(input_list)})")
+                logger.info(
+                    f"📝 Added {len(response.output)} items to input list (total: {len(input_list)})"
+                )
 
             if hasattr(response, "usage") and response.usage:
                 self.total_input_tokens += getattr(response.usage, "input_tokens", 0)
@@ -152,9 +156,13 @@ class OpenAIProvider(LLMProvider):
 
             # Add tool outputs to input list for next iteration
             if tool_outputs:
-                logger.info(f"📤 Adding {len(tool_outputs)} tool output(s) to input list...")
+                logger.info(
+                    f"📤 Adding {len(tool_outputs)} tool output(s) to input list..."
+                )
                 input_list.extend(tool_outputs)
-                logger.info(f"✅ Tool outputs added (input_list now has {len(input_list)} items)")
+                logger.info(
+                    f"✅ Tool outputs added (input_list now has {len(input_list)} items)"
+                )
                 # Continue to next iteration to send tool outputs back to model
                 continue
 

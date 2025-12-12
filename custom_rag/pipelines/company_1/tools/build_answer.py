@@ -36,15 +36,14 @@ class BuildAnswerTool(BaseTool):
                     "default": "add",
                 },
                 "data": {
-                    "type": "object",
-                    "description": "The data to store in this section",
+                    "description": "The data to store in this section (can be object, array, or string)",
                 },
                 "notes": {
                     "type": "string",
-                    "description": "Optional notes about this update (for your reference)",
+                    "description": "Notes or text content for this section (alternative to data)",
                 },
             },
-            "required": ["section", "data"],
+            "required": ["section"],
         }
 
     def execute(self, args: dict[str, Any], context: dict[str, Any]) -> Any:
@@ -65,8 +64,18 @@ class BuildAnswerTool(BaseTool):
         answer_builder = context["answer_builder"]
         section = args.get("section")
         action = args.get("action", "add")
+
+        # Use data if provided, otherwise use notes as the data
         data = args.get("data")
         notes = args.get("notes", "")
+        if data is None and notes:
+            data = notes
+
+        # Validate that we have data to store
+        if data is None:
+            return {
+                "error": "Either 'data' or 'notes' must be provided to store in the answer"
+            }
 
         # Validate section
         valid_sections = [

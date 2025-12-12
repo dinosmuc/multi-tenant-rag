@@ -1,5 +1,6 @@
 """Test script to verify all connections: OpenAI, Database, and Weaviate."""
 
+# ruff: noqa: T201
 import os
 import sys
 from pathlib import Path
@@ -10,14 +11,15 @@ sys.path.insert(0, str(project_root))
 
 # Load Django settings
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
-import django
+import django  # noqa: E402
 
 django.setup()
 
-from dotenv import load_dotenv
-from openai import OpenAI
-from custom_rag.connectors.database import DatabaseConnector
-from custom_rag.connectors.weaviate_connector import WeaviateConnector
+from dotenv import load_dotenv  # noqa: E402
+from openai import OpenAI  # noqa: E402
+
+from custom_rag.connectors.database import DatabaseConnector  # noqa: E402
+from custom_rag.connectors.weaviate_connector import WeaviateConnector  # noqa: E402
 
 load_dotenv()
 
@@ -49,8 +51,8 @@ def test_openai():
         )
         result = response.choices[0].message.content
         print(f"[OK] OpenAI API working: {result}")
-        print(f"[OK] Model: gpt-4o-mini")
-        print(f"[OK] Response received successfully")
+        print("[OK] Model: gpt-4o-mini")
+        print("[OK] Response received successfully")
         return True
     except Exception as e:
         print(f"[FAIL] OpenAI API Error: {str(e)}")
@@ -88,7 +90,7 @@ def test_database():
         from custom_rag.pipelines.company_1.models import Product
 
         product_count = session.query(Product).count()
-        print(f"[OK] Database connected successfully")
+        print("[OK] Database connected successfully")
         print(f"[OK] Found {product_count} products in database")
 
         if product_count == 0:
@@ -124,13 +126,17 @@ def test_weaviate():
     if weaviate_api_key:
         print(f"[OK] API Key found: {weaviate_api_key[:10]}...{weaviate_api_key[-4:]}")
     else:
-        print("[WARN] No WEAVIATE_API_KEY found (may not be required for local instance)")
+        print(
+            "[WARN] No WEAVIATE_API_KEY found (may not be required for local instance)"
+        )
 
     try:
         import socket
 
         # Test basic connectivity first
-        hostname = weaviate_url.replace("https://", "").replace("http://", "").split("/")[0]
+        hostname = (
+            weaviate_url.replace("https://", "").replace("http://", "").split("/")[0]
+        )
         try:
             socket.setdefaulttimeout(5)
             socket.create_connection((hostname, 443), timeout=5)
@@ -143,8 +149,8 @@ def test_weaviate():
         weaviate = WeaviateConnector(collection_name="Company1Products")
 
         # Test connection by checking if collection exists
-        print(f"[OK] Connected to Weaviate")
-        print(f"[OK] Collection: Company1Products")
+        print("[OK] Connected to Weaviate")
+        print("[OK] Collection: Company1Products")
 
         # Try a simple search with timeout
         try:
@@ -164,7 +170,9 @@ def test_weaviate():
     except Exception as e:
         print(f"[FAIL] Weaviate Error: {str(e)}")
         if "timed out" in str(e).lower():
-            print("[INFO] Tip: Check if collection 'Company1Products' exists in Weaviate")
+            print(
+                "[INFO] Tip: Check if collection 'Company1Products' exists in Weaviate"
+            )
             print("[INFO] Tip: Verify Weaviate URL and API key are correct")
         return False
 

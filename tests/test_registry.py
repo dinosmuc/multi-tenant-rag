@@ -2,6 +2,7 @@ from unittest.mock import Mock, mock_open, patch
 
 import pytest
 
+from custom_rag.core.openai_provider import OpenAIProvider
 from custom_rag.registry import PipelineRegistry
 
 
@@ -43,7 +44,8 @@ class TestPipelineRegistry:
             assert pipeline_class == mock_class
             assert isinstance(config, dict)
             assert context["llm"] == "gpt-4o"
-            assert context["llm_provider"] == "openai"
+            assert isinstance(context["llm_provider"], OpenAIProvider)
+            assert context["llm_provider"].model == "gpt-4o"
 
     @patch("builtins.open", new_callable=mock_open, read_data="{}")
     def test_get_pipeline_raises_error_if_not_found(self, mock_file):

@@ -124,11 +124,16 @@ class Company1Pipeline(BasePipeline):
         # Extract the progressively built answer
         final_answer = context.get("answer_builder", {})
 
+        # Debug logging
+        logger.info(f"📊 Answer builder keys: {list(final_answer.keys())}")
+        non_empty_sections = [k for k, v in final_answer.items() if v]
+        logger.info(f"📊 Non-empty sections: {non_empty_sections}")
+
         # If answer_builder has content, use it; otherwise use raw output
         if final_answer and any(final_answer.values()):
             output = final_answer
             logger.info(
-                f"📦 Answer builder has {len([k for k, v in final_answer.items() if v])} sections"
+                f"📦 Answer builder has {len(non_empty_sections)} sections with content"
             )
         else:
             output = result.get("output", "No output generated")
@@ -144,4 +149,5 @@ class Company1Pipeline(BasePipeline):
             "output": output,
             "iterations": result.get("iterations", 0),
             "tools_used": result.get("tools_used", []),
+            "usage": result.get("usage", {}),
         }
