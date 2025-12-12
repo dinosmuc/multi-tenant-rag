@@ -93,11 +93,24 @@ class SemanticSearchTool(BaseTool):
                 product_data = result.get("properties", {})
                 metadata = result.get("metadata", {})
 
-                # Determine relevance level
-                score = metadata.get("score", 0)
-                if score >= 0.85:
+                # Get score or convert distance to score
+                # Weaviate v4 near_text returns distance (0 = identical, higher = less similar)
+                # Convert distance to score: score = 1 - distance (clamped to 0-1)
+                score = metadata.get("score")
+                distance = metadata.get("distance")
+
+                if score is not None:
+                    similarity = float(score)
+                elif distance is not None:
+                    # Convert distance to similarity score (cosine distance is typically 0-2)
+                    similarity = max(0.0, 1.0 - float(distance))
+                else:
+                    similarity = 0.0
+
+                # Determine relevance level based on similarity
+                if similarity >= 0.85:
                     relevance = "high"
-                elif score >= 0.70:
+                elif similarity >= 0.70:
                     relevance = "medium"
                 else:
                     relevance = "low"
@@ -106,9 +119,9 @@ class SemanticSearchTool(BaseTool):
                     {
                         "product_id": product_data.get("product_id"),
                         "name": product_data.get("name"),
-                        "score": round(score, 3),
+                        "score": round(similarity, 3),
                         "relevance": relevance,
-                        "description": product_data.get("description", "")[:200],
+                        "description": product_data.get("description", ""),
                         "service_family": product_data.get("service_family"),
                         "product_type": product_data.get("product_type"),
                     }

@@ -2,7 +2,7 @@ import os
 from typing import Any
 
 import weaviate
-from weaviate.classes.query import Filter
+from weaviate.classes.query import Filter, MetadataQuery
 
 
 class WeaviateConnector:
@@ -80,15 +80,21 @@ class WeaviateConnector:
         Returns:
             List of search results with properties and metadata
         """
-        search_query = self.collection.query.near_text(
+        # Build filter if provided, filtering out empty string values
+        weaviate_filter = None
+        if filters:
+            # Filter out empty string values before building the filter
+            non_empty_filters = {k: v for k, v in filters.items() if v}
+            if non_empty_filters:
+                weaviate_filter = self._build_filter(non_empty_filters)
+
+        # Weaviate v4 API: pass filters directly to near_text()
+        response = self.collection.query.near_text(
             query=query,
             limit=top_k,
+            filters=weaviate_filter,
+            return_metadata=MetadataQuery(distance=True),
         )
-
-        if filters:
-            search_query = search_query.with_where(self._build_filter(filters))
-
-        response = search_query.do()
 
         results = []
         for obj in response.objects:

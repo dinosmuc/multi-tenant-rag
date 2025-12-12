@@ -82,9 +82,8 @@ class TestWeaviateConnector:
         mock_response = Mock()
         mock_response.objects = [mock_obj]
 
-        mock_query = Mock()
-        mock_query.do.return_value = mock_response
-        mock_collection.query.near_text.return_value = mock_query
+        # Weaviate v4 API: near_text() returns response directly (no .do())
+        mock_collection.query.near_text.return_value = mock_response
 
         mock_client.collections.get.return_value = mock_collection
         mock_connect.return_value = mock_client
