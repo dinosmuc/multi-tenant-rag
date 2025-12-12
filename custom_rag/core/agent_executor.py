@@ -40,16 +40,12 @@ class AgentExecutor:
         """
         user_query = context.get("prompt_objects", {}).get("query", "")
 
-        # Update tools with context
-        for tool in self.tools:
-            if hasattr(tool, "context"):
-                tool.context = context
-
         result = self.llm_provider.execute_with_tools(
             instructions=self.system_prompt,
             user_message=user_query,
             tools=self.tools,
             max_iterations=self.max_iterations,
+            context=context,
         )
 
         return result

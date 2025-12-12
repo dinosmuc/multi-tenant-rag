@@ -1,360 +1,192 @@
 # Custom RAG Pipeline System
 
-A scalable RAG (Retrieval-Augmented Generation) pipeline system for the BlueCallom platform, enabling individual companies to have completely isolated custom RAG implementations.
-
-**This is a standalone Django project** that can later be integrated into the main BlueCallom platform.
-
-## Project Structure
-
-```
-custom-rag/
-├── .github/
-│   └── workflows/
-│       └── ci.yml                # GitHub Actions CI/CD
-├── config/                       # Django project configuration
-│   ├── __init__.py
-│   ├── settings.py              # Django settings
-│   ├── urls.py                  # Root URL configuration
-│   ├── wsgi.py                  # WSGI config
-│   └── asgi.py                  # ASGI config
-│
-├── custom_rag/                  # Main Django app
-│   ├── core/                    # Shared base classes
-│   │   ├── base_pipeline.py     # Abstract base for pipelines
-│   │   ├── base_tool.py         # Abstract base for tools
-│   │   ├── agent_executor.py    # Agentic loop logic
-│   │   ├── llm_provider.py      # Abstract LLM provider
-│   │   ├── openai_provider.py   # OpenAI Responses API implementation
-│   │   └── provider_factory.py  # Dynamic provider creation
-│   ├── connectors/              # Database connectors
-│   │   ├── database.py          # SQLAlchemy wrapper
-│   │   └── weaviate_connector.py # Weaviate wrapper
-│   ├── pipelines/               # Company-specific implementations
-│   │   ├── _template/           # Template for new pipelines
-│   │   └── company_1/           # Example pipeline
-│   ├── urls.py                  # App URL routing
-│   ├── views.py                 # REST API endpoint
-│   ├── registry.py              # Pipeline loader
-│   ├── utils.py                 # Response helpers
-│   └── pipelines.json           # Pipeline config mapping
-│
-├── tests/                       # Pytest test suite
-│   ├── __init__.py
-│   ├── conftest.py              # Test fixtures
-│   ├── test_connectors.py       # Connector tests
-│   ├── test_registry.py         # Registry tests
-│   └── test_views.py            # Views tests
-│
-├── manage.py                    # Django management script
-├── pytest.ini                   # Pytest configuration
-├── pyproject.toml               # Project config
-├── requirements.txt             # Python dependencies
-├── requirements-dev.txt         # Dev dependencies (incl. pytest)
-├── .env.example                 # Environment variables template
-├── .gitignore                   # Git ignore rules
-└── README.md                    # This file
-```
-
-## Key Features
-
-- **Complete Isolation**: Each company's pipeline runs in isolation with no shared state
-- **Multi-Provider Support**: Supports OpenAI (with extensibility for Anthropic, etc.)
-- **Dynamic Provider Selection**: Frontend controls which LLM provider to use
-- **Reasoning Models Support**: Full support for o1/o3 with reasoning_effort parameter
-- **Token Tracking**: Complete usage tracking for cost monitoring
-- **Config-Driven**: All company-specific values from configuration
-- **Fresh Connections**: New database connections per request
-- **Automatic Cleanup**: Resources released after each request using context managers
-- **Standardized Errors**: Clean error responses with error codes
-- **Test Coverage**: Comprehensive pytest test suite
-- **CI/CD**: Automated testing and linting via GitHub Actions
+A RAG (Retrieval-Augmented Generation) pipeline system for the BlueCallom platform. This is a standalone Django project that provides AI-powered product catalog search and question answering.
 
 ## Prerequisites
 
-- **Python 3.11+**
-- **pip** (Python package manager)
+Before you start, make sure you have:
+
+- **Python 3.11 or higher** installed
+- **pip** (comes with Python)
 - **Git**
-- **MySQL or PostgreSQL** (for company databases)
-- **Weaviate** (vector database - via Docker or cloud)
-- **OpenAI API key**
+- **OpenAI API key** (get one from https://platform.openai.com/)
+- **Weaviate Cloud account** (sign up at https://console.weaviate.cloud/)
+- **Database connection** (MySQL or PostgreSQL - get credentials from your team)
 
-## Installation
+## How to Run
 
-### 1. Clone the repository
+### Step 1: Clone the repository
 
 ```bash
 git clone <repository-url>
 cd custom-rag
 ```
 
-### 2. Create and activate virtual environment
+### Step 2: Create virtual environment
 
 ```bash
 # Create virtual environment
 python -m venv venv
 
-# Activate (Windows)
-venv\Scripts\activate
-
-# Activate (macOS/Linux)
-source venv/bin/activate
+# Activate it
+venv\Scripts\activate          # Windows
+source venv/bin/activate       # macOS/Linux
 ```
 
-### 3. Install dependencies
+### Step 3: Install dependencies
 
 ```bash
-# Install all dependencies including dev tools (Recommended)
 pip install -r requirements-dev.txt
-
-# Or production only
-pip install -r requirements.txt
 ```
 
-### 4. Configure environment variables
+### Step 4: Set up environment variables
 
+**Copy the template file:**
 ```bash
-# Copy template
-copy .env.example .env     # Windows
-cp .env.example .env       # macOS/Linux
-
-# Generate a Django secret key
-python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
-
-# Edit .env and add:
-# - Generated SECRET_KEY
-# - OPENAI_API_KEY (REQUIRED)
-# - WEAVIATE_URL (REQUIRED)
-# - WEAVIATE_API_KEY (REQUIRED)
-# - Company database URLs
+copy .env.example .env         # Windows
+cp .env.example .env           # macOS/Linux
 ```
 
-**Required Environment Variables:**
+**Generate a Django secret key:**
+```bash
+python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+```
+
+**Open `.env` file and fill in these values:**
+
 ```env
-# Django
-SECRET_KEY=your-generated-secret-key
+# Django Settings
+SECRET_KEY=paste-the-generated-key-here
 DEBUG=True
 ALLOWED_HOSTS=localhost,127.0.0.1
 
-# OpenAI (REQUIRED)
-OPENAI_API_KEY=sk-your-api-key-here
+# OpenAI API (REQUIRED)
+OPENAI_API_KEY=sk-your-openai-api-key-here
 
-# Weaviate (REQUIRED)
-WEAVIATE_URL=http://localhost:8080
+# Weaviate Vector Database (REQUIRED)
+WEAVIATE_URL=https://your-cluster.weaviate.network
 WEAVIATE_API_KEY=your-weaviate-api-key
 
-# Company Databases
-COMPANY1_DB_URL=mysql://user:password@host:port/database
+# Company Database (REQUIRED)
+COMPANY_1_DB_URL=mysql://user:password@host:port/blccoredemo
 ```
 
-### 5. Run Django migrations
+> **Where to get these values?**
+> - **OpenAI API Key**: Get from https://platform.openai.com/api-keys
+> - **Weaviate URL & API Key**: Get from your Weaviate Cloud dashboard at https://console.weaviate.cloud/
+> - **Database URL**: Ask your team lead for database credentials
+
+### Step 5: Run Django migrations
 
 ```bash
 python manage.py migrate
 ```
 
-### 6. Run development server
+### Step 6: Start the server
 
 ```bash
 python manage.py runserver
 ```
 
-Visit: http://localhost:8000/admin/
+The server will start at: **http://localhost:8000/**
 
-## Setting Up Weaviate (Vector Database)
-
-### Option 1: Docker (Recommended for local development)
-
-```bash
-docker run -d \
-  -p 8080:8080 \
-  -e AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED=true \
-  -e PERSISTENCE_DATA_PATH=/var/lib/weaviate \
-  --name weaviate \
-  semitechnologies/weaviate:latest
-```
-
-### Option 2: Weaviate Cloud
-
-1. Sign up at https://console.weaviate.cloud/
-2. Create a cluster
-3. Copy the cluster URL and API key to your `.env` file
+✅ **You're ready!** The API endpoint is available at: `http://localhost:8000/custom_rag/execute/`
 
 ## Running Tests
 
+Make sure your virtual environment is activated, then run:
+
 ```bash
-# Run all tests
 pytest
-
-# Run with verbose output
-pytest -v
-
-# Run specific test file
-pytest tests/test_connectors.py
-
-# Run with coverage
-pytest --cov=custom_rag tests/
 ```
 
-## Code Quality Tools
+All tests should pass (18 tests total).
+
+## Code Quality
+
+Before committing your changes, run these commands:
 
 ```bash
-# Format code with Black
+# Format your code
 black .
 
-# Lint with Ruff
-ruff check .
-
-# Auto-fix linting issues
+# Check for issues
 ruff check --fix .
 
-# Run all quality checks (what CI runs)
-black --check . && ruff check . && pytest tests/
+# Run tests
+pytest
 ```
 
-## API Endpoint
+## How to Use the API
 
-### Request Format
+Once the server is running, you can send requests to the API.
 
-```http
-POST /custom_rag/execute/
-Content-Type: application/json
+### Example Request
 
-{
-  "function_id": "company_1",
-  "llm_provider": "openai",
-  "llm": "gpt-4o",
-  "reasoning_effort": "medium",  // Optional, for o1/o3 models
-  "prompt_objects": {
-    "query": "What products do we have?"
-  },
-  "scope_variables": {},
-  "previous_prompt_outputs": {}
-}
+Use **Postman**, **cURL**, or any HTTP client:
+
+```bash
+curl -X POST http://localhost:8000/custom_rag/execute/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "function_id": "company_1",
+    "llm_provider": "openai",
+    "llm": "gpt-4o",
+    "prompt_objects": {
+      "query": "Show me SAP products for mid-market customers"
+    }
+  }'
 ```
 
-### Success Response
+**Request Parameters:**
+- `function_id` - Which pipeline to use (e.g., `"company_1"`)
+- `llm_provider` - AI provider (currently `"openai"`)
+- `llm` - Model name (e.g., `"gpt-4o"`, `"gpt-4o-mini"`, `"o1-preview"`)
+- `reasoning_effort` - Optional, for resoning models only (`"low"`, `"medium"`, `"high"`)
+- `prompt_objects` - Your input data (e.g., `{"query": "your question"}`)
+
+### Example Response
 
 ```json
 {
   "success": true,
-  "statusCode": 200,
   "data": {
-    "output": "We have the following products...",
-    "metadata": {
-      "iterations": 5,
-      "tools_used": ["semantic_search", "get_product_details"]
-    }
+    "output": "Here are the SAP products for mid-market customers: ...",
+    "iterations": 5,
+    "tools_used": ["semantic_search", "sql_query"]
   },
   "usage": {
-    "input_tokens": 123,
-    "output_tokens": 456,
-    "total_tokens": 579
+    "input_tokens": 1234,
+    "output_tokens": 567,
+    "total_tokens": 1801
   }
 }
 ```
 
-### Error Response
+## Troubleshooting
 
-```json
-{
-  "success": false,
-  "statusCode": 400,
-  "error": {
-    "code": "INVALID_REQUEST",
-    "message": "Missing 'function_id' in request"
-  },
-  "usage": {
-    "input_tokens": 0,
-    "output_tokens": 0,
-    "total_tokens": 0
-  }
-}
-```
+**Issue: "ModuleNotFoundError"**
+- Make sure your virtual environment is activated
+- Run `pip install -r requirements-dev.txt` again
 
-### Error Codes
+**Issue: "Database connection error"**
+- Check your `COMPANY_1_DB_URL` in `.env` file
+- Verify you have the correct database credentials
+- Make sure the database server is accessible
 
-- `INVALID_REQUEST` - Missing or invalid request parameters
-- `PIPELINE_NOT_FOUND` - Pipeline function_id not found
-- `PROVIDER_NOT_SUPPORTED` - LLM provider not supported
-- `INVALID_JSON` - Request body is not valid JSON
-- `INTERNAL_ERROR` - Unexpected server error
+**Issue: "Weaviate connection error"**
+- Check your `WEAVIATE_URL` and `WEAVIATE_API_KEY` in `.env`
+- Verify your Weaviate cluster is running
+- Check your internet connection
 
-## Adding a New Pipeline
+**Issue: "OpenAI API error"**
+- Verify your `OPENAI_API_KEY` is correct
+- Check you have credits in your OpenAI account
+- Make sure the API key has the correct permissions
 
-1. Copy the `_template` folder to a new company folder:
-   ```bash
-   cp -r custom_rag/pipelines/_template custom_rag/pipelines/company_name
-   ```
+## Need Help?
 
-2. Implement company-specific components:
-   - `models.py` - SQLAlchemy models
-   - `config.py` - Configuration constants
-   - `tools/` - Custom tools
-   - `prompts/system_prompt.py` - System prompt
-   - `pipeline.py` - Pipeline implementation
-
-3. Add configuration to `pipelines.json`:
-   ```json
-   {
-     "company_name_rag": {
-       "pipeline": "custom_rag.pipelines.company_name.pipeline.RAGPipeline",
-       "config": {
-         "weaviate_collection": "CompanyNameCollection",
-         "db_env_var": "COMPANY_NAME_DB_URL",
-         "max_iterations": 100
-       }
-     }
-   }
-   ```
-
-4. Add database URL to `.env`:
-   ```env
-   COMPANY_NAME_DB_URL=mysql://user:password@host:port/database
-   ```
-
-See `project.md` for detailed documentation.
-
-## CI/CD
-
-GitHub Actions automatically runs on every push and PR:
-
-✅ **Ruff** - Code linting
-✅ **Black** - Code formatting check
-✅ **Pytest** - Full test suite
-
-PRs must pass all checks before merging to main.
-
-## Development Workflow
-
-1. Create feature branch
-2. Make changes
-3. Run tests locally: `pytest`
-4. Format code: `black .`
-5. Check linting: `ruff check .`
-6. Commit and push
-7. GitHub Actions runs automatically
-8. Create PR when checks pass
-
-## Architecture Overview
-
-```
-Request → Views → Registry → Pipeline Factory
-                      ↓
-                  Pipeline (with context manager)
-                      ↓
-              Provider Factory → OpenAI/Anthropic
-                      ↓
-              Agent Executor (agentic loop)
-                      ↓
-              Tools (semantic search, DB queries, etc.)
-                      ↓
-                  Response with usage tracking
-```
-
-## License
-
-Proprietary - BlueCallom
-
-## Support
-
-For issues or questions, please contact the development team or refer to `project.md` for detailed documentation.
+- Check `CLAUDE.md` for detailed technical documentation
+- Check `project.md` for architecture and design details
+- Ask your team lead for credentials or access issues
+- Contact the development team for other questions

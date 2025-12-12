@@ -25,15 +25,30 @@ class WeaviateConnector:
         weaviate_url = os.getenv("WEAVIATE_URL", "http://localhost:8080")
         weaviate_api_key = os.getenv("WEAVIATE_API_KEY")
 
-        self.client = weaviate.connect_to_custom(
-            http_host=weaviate_url.replace("http://", "").replace("https://", ""),
-            http_port=8080,
-            http_secure=False,
-            grpc_host=weaviate_url.replace("http://", "").replace("https://", ""),
-            grpc_port=50051,
-            grpc_secure=False,
-            auth_credentials=weaviate.auth.AuthApiKey(weaviate_api_key),
-        )
+        # Determine if this is a cloud instance or local
+        is_cloud = "weaviate.cloud" in weaviate_url or "weaviate.network" in weaviate_url
+
+        if is_cloud:
+            # For Weaviate Cloud, use connect_to_weaviate_cloud
+            cluster_url = weaviate_url.replace("https://", "").replace("http://", "")
+            self.client = weaviate.connect_to_weaviate_cloud(
+                cluster_url=cluster_url,
+                auth_credentials=weaviate.auth.AuthApiKey(weaviate_api_key),
+            )
+        else:
+            # For local/custom Weaviate instances
+            is_secure = weaviate_url.startswith("https://")
+            host = weaviate_url.replace("http://", "").replace("https://", "")
+
+            self.client = weaviate.connect_to_custom(
+                http_host=host,
+                http_port=443 if is_secure else 8080,
+                http_secure=is_secure,
+                grpc_host=host,
+                grpc_port=443 if is_secure else 50051,
+                grpc_secure=is_secure,
+                auth_credentials=weaviate.auth.AuthApiKey(weaviate_api_key) if weaviate_api_key else None,
+            )
 
         self.collection = self.client.collections.get(self.collection_name)
 

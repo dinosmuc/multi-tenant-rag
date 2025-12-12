@@ -3,6 +3,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from custom_rag.core.provider_factory import ProviderFactory
+
 
 class PipelineRegistry:
     """Registry for loading and managing pipeline configurations."""
@@ -90,9 +92,18 @@ class PipelineRegistry:
         if not llm:
             raise ValueError("'llm' model must be provided in request")
 
-        llm_provider = request_data.get("llm_provider")
-        if not llm_provider:
+        llm_provider_name = request_data.get("llm_provider")
+        if not llm_provider_name:
             raise ValueError("'llm_provider' must be provided in request")
+
+        reasoning_effort = request_data.get("reasoning_effort")
+
+        # Create provider instance using factory
+        llm_provider = ProviderFactory.create_provider(
+            provider_name=llm_provider_name,
+            model=llm,
+            reasoning_effort=reasoning_effort,
+        )
 
         return {
             "prompt_objects": request_data.get("prompt_objects", {}),
@@ -100,7 +111,7 @@ class PipelineRegistry:
             "previous_prompt_outputs": request_data.get("previous_prompt_outputs", {}),
             "llm": llm,
             "llm_provider": llm_provider,
-            "reasoning_effort": request_data.get("reasoning_effort"),
+            "reasoning_effort": reasoning_effort,
         }
 
 

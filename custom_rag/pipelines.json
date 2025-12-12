@@ -1,18 +1,10 @@
 {
-  "example_pipeline": {
-    "pipeline": "custom_rag.pipelines._template.pipeline.RAGPipeline",
-    "config": {
-      "weaviate_collection": "ExampleCollection",
-      "db_env_var": "EXAMPLE_DB_URL",
-      "max_iterations": 10
-    }
-  },
   "company_1": {
-    "pipeline": "custom_rag.pipelines.company_1.pipeline.RAGPipeline",
+    "pipeline": "custom_rag.pipelines.company_1.pipeline.Company1Pipeline",
     "config": {
-      "weaviate_collection": "Company1Collection",
-      "db_env_var": "COMPANY1_DB_URL",
-      "max_iterations": 10
+      "weaviate_collection": "Company1Products",
+      "db_env_var": "COMPANY_1_DB_URL",
+      "max_iterations": 100
     }
   }
 }

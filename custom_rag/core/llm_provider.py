@@ -23,6 +23,7 @@ class LLMProvider(ABC):
         user_message: str,
         tools: list[BaseTool],
         max_iterations: int,
+        context: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """
         Execute agentic loop with tools.
@@ -32,6 +33,7 @@ class LLMProvider(ABC):
             user_message: User's input message
             tools: List of available tools
             max_iterations: Maximum number of iterations
+            context: Request context with db, weaviate, and other resources
 
         Returns:
             Dict with output, iterations, and tools_used
