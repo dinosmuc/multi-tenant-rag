@@ -19,29 +19,15 @@ from datetime import datetime
 import pytest
 from django.test import Client
 from openai import OpenAI
-from pydantic import BaseModel
 import requests
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-# Pydantic models for structured OpenAI responses
-class CriterionScore(BaseModel):
-    """Score for a single evaluation criterion."""
-    name: str
-    score: int  # 0-10
-    explanation: str
-
-class OpenAIEvaluation(BaseModel):
-    """Structured evaluation response from OpenAI."""
-    overall_score: int  # 0-10
-    is_satisfactory: bool
-    criteria_scores: List[CriterionScore]
-    strengths: List[str]
-    weaknesses: List[str]
-    explanation: str
-    recommendation: str  # "pass" or "fail"
 
 @dataclass
 class TestCaseResult:
