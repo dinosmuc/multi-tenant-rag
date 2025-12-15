@@ -71,6 +71,9 @@ select = [
 ]
 ignore = ["E501"]  # line too long (Black handles this)
 
+[tool.ruff.lint.per-file-ignores]
+"tests/test_cases.py" = ["T201"]  # Allow print statements in test runner CLI
+
 [tool.ruff.lint.isort]
 known-first-party = ["custom_rag"]
 
@@ -78,7 +81,9 @@ known-first-party = ["custom_rag"]
 DJANGO_SETTINGS_MODULE = "config.settings"
 python_files = ["tests.py", "test_*.py", "*_tests.py"]
 testpaths = ["tests"]
-addopts = "-v --tb=short"
+# Exclude test_cases.py - expensive integration tests requiring live API calls
+# Run manually with: python tests/test_cases.py --count N
+addopts = "-v --tb=short --ignore=tests/test_cases.py"
 
 [tool.coverage.run]
 source = ["custom_rag"]
