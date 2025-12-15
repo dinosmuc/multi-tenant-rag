@@ -503,6 +503,7 @@ def main():
     parser.add_argument("--testcases", help="Path to testcases.json file")
     parser.add_argument("--output", help="Path to output results file")
     parser.add_argument("--openai-key", help="OpenAI API key")
+    parser.add_argument("--num-tests", type=int, default=5, help="Number of test cases to run (default: 5)")
     args = parser.parse_args()
     
     try:
@@ -510,6 +511,11 @@ def main():
             testcases_file=args.testcases,
             openai_api_key=args.openai_key
         )
+        
+        # Limit the number of test cases to run
+        if args.num_tests and args.num_tests > 0:
+            framework.test_cases = framework.test_cases[:args.num_tests]
+            logger.info(f"Running first {len(framework.test_cases)} test cases (limited by --num-tests)")
         
         summary = framework.run_all_test_cases()
         framework.save_results_to_file(summary, args.output)
