@@ -6,7 +6,7 @@
     "request_data": {
       "function_id": "company_1",
       "llm_provider": "openai",
-      "llm": "gpt-4o",
+      "llm": "gpt-5-mini",
       "prompt_objects": {
         "query": "We're just starting with Azure and need a secure, compliant landing zone in the Swiss region. Do you offer a standardized service for that?"
       },
@@ -28,7 +28,7 @@
     "request_data": {
       "function_id": "company_1",
       "llm_provider": "openai",
-      "llm": "gpt-4o",
+      "llm": "gpt-5-mini",
       "prompt_objects": {
         "query": "Do you have an S3-compatible object storage service that's hosted only in Swiss datacenters and avoids egress fees?"
       },
@@ -50,7 +50,7 @@
     "request_data": {
       "function_id": "company_1",
       "llm_provider": "openai",
-      "llm": "gpt-4o",
+      "llm": "gpt-5-mini",
       "prompt_objects": {
         "query": "We already use Veeam Backup & Replication on-premise and want to follow the 3-2-1 rule with an offsite Swiss cloud target. Which offering of yours fits, and how is it generally billed?"
       },
@@ -72,7 +72,7 @@
     "request_data": {
       "function_id": "company_1",
       "llm_provider": "openai",
-      "llm": "gpt-4o",
+      "llm": "gpt-5-mini",
       "prompt_objects": {
         "query": "We're a small Swiss law firm and want to give staff virtual Windows desktops so that client data never lives on laptops. Is there a Swiss-hosted desktop-as-a-service you provide that's actually offered to SMBs?"
       },
@@ -94,7 +94,7 @@
     "request_data": {
       "function_id": "company_1",
       "llm_provider": "openai",
-      "llm": "gpt-4o",
+      "llm": "gpt-5-mini",
       "prompt_objects": {
         "query": "Our Azure and AWS bills are growing and we suspect a lot of waste, but we don't want a long-running managed service—just a focused engagement to clean things up and set up better governance. Which service should we look at?"
       },
@@ -116,7 +116,7 @@
     "request_data": {
       "function_id": "company_1",
       "llm_provider": "openai",
-      "llm": "gpt-4o",
+      "llm": "gpt-5-mini",
       "prompt_objects": {
         "query": "Our compliance team insists that all backup and archiving data must stay strictly in Switzerland. Which of your backup or archiving services fit that requirement?"
       },
@@ -138,7 +138,7 @@
     "request_data": {
       "function_id": "company_1",
       "llm_provider": "openai",
-      "llm": "gpt-4o",
+      "llm": "gpt-5-mini",
       "prompt_objects": {
         "query": "We'd like you to back up our Microsoft 365 tenant to a Swiss datacenter. Apart from signing up for the backup service itself, what other prerequisites from your own catalog or from Microsoft do we need in place?"
       },
@@ -160,7 +160,7 @@
     "request_data": {
       "function_id": "company_1",
       "llm_provider": "openai",
-      "llm": "gpt-4o",
+      "llm": "gpt-5-mini",
       "prompt_objects": {
         "query": "For planning purposes: if we stored about 120 TB in your Swiss Object Storage and also used the storage gateway appliance, what kind of recurring and one-time charges are we roughly looking at?"
       },
@@ -182,7 +182,7 @@
     "request_data": {
       "function_id": "company_1",
       "llm_provider": "openai",
-      "llm": "gpt-4o",
+      "llm": "gpt-5-mini",
       "prompt_objects": {
         "query": "Before we move any servers to the AWS Zurich region, we want an engagement that discovers our workloads, classifies applications with the 6-R framework, and gives us a TCO comparison. Which specific project is that?"
       },
@@ -204,7 +204,7 @@
     "request_data": {
       "function_id": "company_1",
       "llm_provider": "openai",
-      "llm": "gpt-4o",
+      "llm": "gpt-5-mini",
       "prompt_objects": {
         "query": "As an enterprise SAP customer we want you to run the technical side of our SAP landscape (HANA, Basis, transports, uptime etc.) but we'll handle process design and configuration internally. Which of your SAP services matches that?"
       },
@@ -226,7 +226,7 @@
     "request_data": {
       "function_id": "company_1",
       "llm_provider": "openai",
-      "llm": "gpt-4o",
+      "llm": "gpt-5-mini",
       "prompt_objects": {
         "query": "We're an ECC customer in Switzerland planning a brownfield conversion to S/4HANA and want to keep full financial history for legal reasons. Which SAP services from your portfolio would you typically combine to cover the technical conversion, ongoing operations, and long-term data management?"
       },
@@ -248,7 +248,7 @@
     "request_data": {
       "function_id": "company_1",
       "llm_provider": "openai",
-      "llm": "gpt-4o",
+      "llm": "gpt-5-mini",
       "prompt_objects": {
         "query": "If we buy your 24/7 Swiss SOC service, what other offerings do we need so that endpoint and cloud telemetry actually flows into the SOC and we can enforce policies on laptops?"
       },
@@ -270,7 +270,7 @@
     "request_data": {
       "function_id": "company_1",
       "llm_provider": "openai",
-      "llm": "gpt-4o",
+      "llm": "gpt-5-mini",
       "prompt_objects": {
         "query": "We're happy with our existing VPN concentrator but want to move toward a SASE or Zero Trust model for remote workers and Microsoft 365. If we use your SASE solution, what happens to your VPN concentrator migration project—is it something we still need?"
       },
@@ -292,7 +292,7 @@
     "request_data": {
       "function_id": "company_1",
       "llm_provider": "openai",
-      "llm": "gpt-4o",
+      "llm": "gpt-5-mini",
       "prompt_objects": {
         "query": "We want to replace our traditional PBX with Teams-based telephony for about 400 users in Switzerland. We already have Microsoft 365 but aren't sure if we own the right licenses. Which offerings from your catalog would you bring in to design and implement this end-to-end?"
       },
@@ -314,7 +314,7 @@
     "request_data": {
       "function_id": "company_1",
       "llm_provider": "openai",
-      "llm": "gpt-4o",
+      "llm": "gpt-5-mini",
       "prompt_objects": {
         "query": "Roughly how much would we pay per month for SAP AMS Platinum Swiss Support for 80 users today, and what would that grow to if we doubled to 160 named users?"
       },
@@ -336,7 +336,7 @@
     "request_data": {
       "function_id": "company_1",
       "llm_provider": "openai",
-      "llm": "gpt-4o",
+      "llm": "gpt-5-mini",
       "prompt_objects": {
         "query": "We're planning a move to SAP RISE on Azure in Switzerland and also want to land our non-SAP workloads in the same governed Azure foundation and have everything monitored 24/7. Which combination of your services would you propose to cover the Azure foundation, the RISE transition itself, and continuous security monitoring?"
       },
@@ -358,7 +358,7 @@
     "request_data": {
       "function_id": "company_1",
       "llm_provider": "openai",
-      "llm": "gpt-4o",
+      "llm": "gpt-5-mini",
       "prompt_objects": {
         "query": "Our data is messy and scattered, and we don't have any formal data owners defined yet, but management wants to introduce AI assistants like Copilot. Which of your consulting services should we start with to get data governance in place and then check AI readiness?"
       },
@@ -380,7 +380,7 @@
     "request_data": {
       "function_id": "company_1",
       "llm_provider": "openai",
-      "llm": "gpt-4o",
+      "llm": "gpt-5-mini",
       "prompt_objects": {
         "query": "We want a Swiss-based DR design where we replicate on-prem VMware workloads into Azure Switzerland West or your private cloud, run regular DR drills, and also have immutable offsite backups for ransomware scenarios using Veeam. Which of your services and dependencies would you combine for this?"
       },
@@ -402,7 +402,7 @@
     "request_data": {
       "function_id": "company_1",
       "llm_provider": "openai",
-      "llm": "gpt-4o",
+      "llm": "gpt-5-mini",
       "prompt_objects": {
         "query": "As an enterprise manufacturer we prefer standardized recurring security services rather than one-off projects. Looking at your security and workplace portfolio, which ongoing services would you highlight for threat monitoring, endpoint and mobile protection, and vulnerability management, and which related offerings are more project-like instead of SLAs?"
       },
@@ -424,7 +424,7 @@
     "request_data": {
       "function_id": "company_1",
       "llm_provider": "openai",
-      "llm": "gpt-4o",
+      "llm": "gpt-5-mini",
       "prompt_objects": {
         "query": "We're a regulated Swiss mid-market bank that wants to exit our on-prem datacenter over the next three years. We want as much as possible to stay hosted in Switzerland, avoid deprecated or preview services, and cover: an Azure landing zone and connectivity, SAP S/4HANA brownfield migration, Swiss-hosted backups and DR, a modern analytics platform, and ongoing security monitoring. Using only offers from your catalog, how would you roughly structure such a transformation and which concrete services would you combine?"
       },

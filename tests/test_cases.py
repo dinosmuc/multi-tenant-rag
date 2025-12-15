@@ -11,11 +11,13 @@ This module provides functionality to:
 import json
 import logging
 import os
+import sys
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 from dataclasses import dataclass
 from datetime import datetime
 
+import django
 import pytest
 from django.test import Client
 from openai import OpenAI
@@ -24,6 +26,14 @@ from dotenv import load_dotenv
 
 # Load environment variables from .env file
 load_dotenv()
+
+# Ensure Django settings are configured when running as a standalone script
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
+django.setup()
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -164,62 +174,51 @@ Consider the response as satisfactory if the overall score is 7 or above.
                     "text": {
                         "format": {
                             "type": "json_schema",
-                            "json_schema": {
-                                "name": "evaluation_result",
-                                "strict": True,
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "overall_score": {
-                                            "type": "integer",
-                                            "minimum": 0,
-                                            "maximum": 10
-                                        },
-                                        "is_satisfactory": {
-                                            "type": "boolean"
-                                        },
-                                        "criteria_scores": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "name": {"type": "string"},
-                                                    "score": {
-                                                        "type": "integer",
-                                                        "minimum": 0,
-                                                        "maximum": 10
-                                                    },
-                                                    "explanation": {"type": "string"}
-                                                },
-                                                "required": ["name", "score", "explanation"],
-                                                "additionalProperties": False
-                                            }
-                                        },
-                                        "strengths": {
-                                            "type": "array",
-                                            "items": {"type": "string"}
-                                        },
-                                        "weaknesses": {
-                                            "type": "array",
-                                            "items": {"type": "string"}
-                                        },
-                                        "explanation": {"type": "string"},
-                                        "recommendation": {
-                                            "type": "string",
-                                            "enum": ["pass", "fail"]
+                            "name": "evaluation_result",
+                            "strict": True,
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "overall_score": {
+                                        "type": "integer"
+                                    },
+                                    "is_satisfactory": {
+                                        "type": "boolean"
+                                    },
+                                    "criteria_scores": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "name": {"type": "string"},
+                                                "score": {"type": "integer"},
+                                                "explanation": {"type": "string"}
+                                            },
+                                            "required": ["name", "score", "explanation"],
+                                            "additionalProperties": False
                                         }
                                     },
-                                    "required": [
-                                        "overall_score", 
-                                        "is_satisfactory", 
-                                        "criteria_scores",
-                                        "strengths", 
-                                        "weaknesses", 
-                                        "explanation", 
-                                        "recommendation"
-                                    ],
-                                    "additionalProperties": False
-                                }
+                                    "strengths": {
+                                        "type": "array",
+                                        "items": {"type": "string"}
+                                    },
+                                    "weaknesses": {
+                                        "type": "array",
+                                        "items": {"type": "string"}
+                                    },
+                                    "explanation": {"type": "string"},
+                                    "recommendation": {"type": "string"}
+                                },
+                                "required": [
+                                    "overall_score",
+                                    "is_satisfactory",
+                                    "criteria_scores",
+                                    "strengths",
+                                    "weaknesses",
+                                    "explanation",
+                                    "recommendation"
+                                ],
+                                "additionalProperties": False
                             }
                         }
                     },
@@ -345,19 +344,25 @@ Consider the response as satisfactory if the overall score is 7 or above.
             execution_time=execution_time
         )
     
-    def run_all_test_cases(self) -> TestSummary:
+    def run_all_test_cases(self, max_tests: int = None) -> TestSummary:
         """
         Run all test cases and return summary of results.
-        
+
+        Args:
+            max_tests: Maximum number of test cases to run (None = run all)
+
         Returns:
             TestSummary with overall results
         """
-        logger.info("Starting test case execution...")
-        
+        # Determine which test cases to run
+        test_cases_to_run = self.test_cases[:max_tests] if max_tests else self.test_cases
+
+        logger.info(f"Starting test case execution... (Running {len(test_cases_to_run)} of {len(self.test_cases)} total tests)")
+
         results = []
         total_execution_time = 0
-        
-        for test_case in self.test_cases:
+
+        for test_case in test_cases_to_run:
             result = self.run_single_test_case(test_case)
             results.append(result)
             total_execution_time += result.execution_time
@@ -445,6 +450,8 @@ class TestRAGSystem:
     
     def test_run_all_test_cases(self, test_framework):
         """Run all test cases and assert success rate meets threshold."""
+        # You can optionally pass max_tests parameter here too
+        # summary = test_framework.run_all_test_cases(max_tests=5)
         summary = test_framework.run_all_test_cases()
         
         # Save results
@@ -498,11 +505,18 @@ class TestRAGSystem:
 def main():
     """Main function to run tests from command line."""
     import argparse
+    import io
+
+    # Set UTF-8 encoding for Windows console to handle emojis
+    if sys.platform == "win32":
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+        sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
     
     parser = argparse.ArgumentParser(description="Run RAG system test cases")
     parser.add_argument("--testcases", help="Path to testcases.json file")
     parser.add_argument("--output", help="Path to output results file")
     parser.add_argument("--openai-key", help="OpenAI API key")
+    parser.add_argument("--count", type=int, help="Number of test cases to run (default: all)")
     args = parser.parse_args()
     
     try:
@@ -510,8 +524,8 @@ def main():
             testcases_file=args.testcases,
             openai_api_key=args.openai_key
         )
-        
-        summary = framework.run_all_test_cases()
+
+        summary = framework.run_all_test_cases(max_tests=args.count)
         framework.save_results_to_file(summary, args.output)
         
         print(f"\n🎯 Test Execution Complete!")
