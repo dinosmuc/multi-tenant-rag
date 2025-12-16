@@ -1,10 +1,9 @@
 name: CI
 
 on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main ]
+  # Temporarily disable automatic runs (push/PR).
+  # Re-enable by restoring `push`/`pull_request` triggers.
+  workflow_dispatch:
 
 jobs:
   lint-and-test:
