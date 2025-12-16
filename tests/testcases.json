@@ -439,5 +439,117 @@
       "Correctly leverages key dependencies (e.g., SAP-001 → SEC-001, SEC-001 → WP-012, CLOUD-012 → CLOUD-002, SAP-011 → CLOUD-001 if included)",
       "Presents the answer in a structured, narrative form (phases/waves) that a banking CIO could understand"
     ]
+  },
+  
+  {
+    "id": "test_case_21",
+    "description": "Multi-region active-active architecture with strict latency and data sovereignty constraints.",
+    "query": "We are a Swiss fintech designing a high-frequency trading platform. We need an active-active setup between Zurich and Geneva. Latency between zones must be under 5ms. We need synchronous data replication for our SQL backend and geo-redundant blob storage for 50TB of legal archives. Which combination of your connectivity, database, and storage services meets these latency and redundancy requirements, and what is the estimated monthly TCO including data transfer if we replicate 5TB daily?",
+    "request_data": {
+      "function_id": "company_1",
+      "llm_provider": "openai",
+      "llm": "gpt-5.2",
+      "prompt_objects": {
+        "query": "We are a Swiss fintech designing a high-frequency trading platform. We need an active-active setup between Zurich and Geneva. Latency between zones must be under 5ms. We need synchronous data replication for our SQL backend and geo-redundant blob storage for 50TB of legal archives. Which combination of your connectivity, database, and storage services meets these latency and redundancy requirements, and what is the estimated monthly TCO including data transfer if we replicate 5TB daily?"
+      },
+      "scope_variables": {},
+      "previous_prompt_outputs": {}
+    },
+    "expected_solution": "The solution must select 'Dark Fiber Connectivity' (NET-003) or 'Hybrid Cloud Connectivity' (CLOUD-008) to meet the <5ms latency requirement, as standard internet (VPN) cannot guarantee this. It should propose 'Managed Database PaaS' (CLOUD-009) with configured Geo-Replication for the SQL backend. For storage, it must select 'Swiss Object Storage (S3)' (CLOUD-002) and calculate the cost for 50TB storage + 5TB daily replication (if applicable under the 'no egress fees' benefit). The answer must explicitly validate the latency feasibility between Zurich and Geneva.",
+    "evaluation_criteria": [
+      "Selects NET-003 or CLOUD-008 for connectivity to ensure <5ms latency",
+      "Proposes CLOUD-009 with Geo-Replication for the database",
+      "Calculates storage TCO: 50TB * price/GB + potential replication/transfer costs if not covered by 'no egress' policy",
+      "Explicitly confirms Swiss data residency for both active nodes"
+    ]
+  },
+  {
+    "id": "test_case_22",
+    "description": "Complex M&A SAP license consolidation and cloud migration.",
+    "query": "We are acquiring a competitor. We run SAP ECC on-prem with 200 'Professional' and 500 'Limited Professional' users. The target company runs S/4HANA Public Cloud with 150 'Advanced Use' FUEs. We want to consolidate everything into a single Private Cloud (RISE) tenant in Switzerland. Please map our combined user base to the new S/4HANA Cloud license types (FUE), identify any over-licensing, and estimate the new annual subscription cost including the RISE base fee.",
+    "request_data": {
+      "function_id": "company_1",
+      "llm_provider": "openai",
+      "llm": "gpt-5.2",
+      "prompt_objects": {
+        "query": "We are acquiring a competitor. We run SAP ECC on-prem with 200 'Professional' and 500 'Limited Professional' users. The target company runs S/4HANA Public Cloud with 150 'Advanced Use' FUEs. We want to consolidate everything into a single Private Cloud (RISE) tenant in Switzerland. Please map our combined user base to the new S/4HANA Cloud license types (FUE), identify any over-licensing, and estimate the new annual subscription cost including the RISE base fee."
+      },
+      "scope_variables": {},
+      "previous_prompt_outputs": {}
+    },
+    "expected_solution": "The agent must use 'SAP RISE Transition Service' (SAP-011) and potentially 'SAP License Audit Defense' (SAP-017) logic. It needs to map ECC 'Professional' -> S/4HANA 'Advanced Use' (1 FUE) and 'Limited Professional' -> 'Core Use' (e.g., 0.2 FUE). It must then sum the total FUEs: 200 + (500*0.2) + 150 = 450 FUEs. It should then estimate the RISE subscription cost based on this FUE count and the Private Cloud base fee.",
+    "evaluation_criteria": [
+      "Correctly maps legacy user types to S/4HANA FUEs (Professional=1, Limited=~0.2)",
+      "Calculates the correct total consolidated FUE count (approx. 450)",
+      "Recommends SAP-011 for the migration and contract consolidation",
+      "Provides a plausible TCO estimate based on FUE count and RISE base costs"
+    ]
+  },
+  {
+    "id": "test_case_23",
+    "description": "Healthcare IoT segmentation with legacy OS constraints.",
+    "query": "We are a Zurich hospital. We have 500 legacy MRI machines and patient monitors running Windows XP that cannot be patched or have agents installed. We need to connect them to our central network for data collection but must strictly isolate them to prevent ransomware lateral movement. What specific network security architecture do you propose, and what are the detailed costs for protecting 500 such devices?",
+    "request_data": {
+      "function_id": "company_1",
+      "llm_provider": "openai",
+      "llm": "gpt-5.2",
+      "prompt_objects": {
+        "query": "We are a Zurich hospital. We have 500 legacy MRI machines and patient monitors running Windows XP that cannot be patched or have agents installed. We need to connect them to our central network for data collection but must strictly isolate them to prevent ransomware lateral movement. What specific network security architecture do you propose, and what are the detailed costs for protecting 500 such devices?"
+      },
+      "scope_variables": {},
+      "previous_prompt_outputs": {}
+    },
+    "expected_solution": "The agent must recognize that 'Endpoint Security' (WP-012) cannot be used (Windows XP/no agent). It must recommend 'Network Access Control (NAC)' (NET-004) for dynamic VLAN assignment and 'Industrial IoT (OT) Segmentation' (NET-010) or 'Zero Trust Architecture' (SEC-009) to create micro-segments. It should propose placing these devices behind strict firewalls (from NET-010 or NET-006). Pricing should be based on the number of devices (500) for NAC licenses and potentially hardware firewalls.",
+    "evaluation_criteria": [
+      "Correctly rejects agent-based endpoint protection for Windows XP",
+      "Proposes network-level isolation (NAC + OT Segmentation/Firewalls)",
+      "Includes NET-004 and NET-010 in the solution",
+      "Calculates pricing for 500 devices based on NAC per-device/port fees"
+    ]
+  },
+  {
+    "id": "test_case_24",
+    "description": "GDPR/nFADP compliant archiving for sensitive patient data.",
+    "query": "We have 2PB of sensitive patient data (PACS images) that must be archived for 20 years to comply with Swiss law. This data must be immutable (WORM), stored strictly in Switzerland, and searchable within 4 hours if requested by a court. We need a solution that handles the storage and the compliance workflow. What is the 20-year TCO for this archive?",
+    "request_data": {
+      "function_id": "company_1",
+      "llm_provider": "openai",
+      "llm": "gpt-5.2",
+      "prompt_objects": {
+        "query": "We have 2PB of sensitive patient data (PACS images) that must be archived for 20 years to comply with Swiss law. This data must be immutable (WORM), stored strictly in Switzerland, and searchable within 4 hours if requested by a court. We need a solution that handles the storage and the compliance workflow. What is the 20-year TCO for this archive?"
+      },
+      "scope_variables": {},
+      "previous_prompt_outputs": {}
+    },
+    "expected_solution": "The solution must combine 'Swiss Object Storage (S3)' (CLOUD-002) for the 2PB WORM storage and 'Data Strategy & Governance' (CON-006) or a custom consulting project to define the retention policies. It might also leverage 'SAP Data Archiving' (SAP-009) if the source is SAP-related, but for generic PACS, CLOUD-002 is key. The agent needs to calculate 2PB * price/GB * 12 months * 20 years, potentially factoring in a discount for 'Cold' storage if available or standard rates if not.",
+    "evaluation_criteria": [
+      "Selects CLOUD-002 for Swiss-only immutable storage",
+      "Confirms WORM/Object Locking capability for compliance",
+      "Calculates a massive TCO (2PB = 2,000,000 GB) correctly over 20 years",
+      "Suggests a governance/consulting wrapper (CON-006) to ensure legal compliance"
+    ]
+  },
+  {
+    "id": "test_case_25",
+    "description": "End-to-end office move with zero downtime for trading floor.",
+    "query": "We are moving our trading floor (50 users) to a new building in Zurich. We need 100% uptime for voice and data during the move. The new office needs fully redundant 10Gbps connectivity, Wi-Fi 6, and a new Teams Room setup for the boardroom. We also need to physically move the PC hardware on a weekend. Please build a full project plan including all necessary connectivity, workplace, and consulting services.",
+    "request_data": {
+      "function_id": "company_1",
+      "llm_provider": "openai",
+      "llm": "gpt-5.2",
+      "prompt_objects": {
+        "query": "We are moving our trading floor (50 users) to a new building in Zurich. We need 100% uptime for voice and data during the move. The new office needs fully redundant 10Gbps connectivity, Wi-Fi 6, and a new Teams Room setup for the boardroom. We also need to physically move the PC hardware on a weekend. Please build a full project plan including all necessary connectivity, workplace, and consulting services."
+      },
+      "scope_variables": {},
+      "previous_prompt_outputs": {}
+  },
+    "expected_solution": "This requires a 'bundle' of Network and Workplace services. Key components: 'Dark Fiber Connectivity' (NET-003) or 'SD-WAN Swiss Connect' (NET-001) for redundant 10Gbps. 'Managed LAN & Wi-Fi' (NET-002) for the new office network. 'Meeting Room Modernization' (WP-010) for the boardroom. 'Workplace Strategy' (CON-015) for the move planning. The agent should construct a timeline that sequences connectivity installation *before* the move weekend.",
+    "evaluation_criteria": [
+      "Includes NET-003 (Dark Fiber) or high-end NET-001 for 10Gbps requirement",
+      "Includes NET-002 and WP-010 for office fit-out",
+      "Includes CON-015 or custom consulting for the physical move coordination",
+      "Creates a logical project timeline where connectivity is live before the move date"
+    ]
   }
+  
 ]

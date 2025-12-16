@@ -1,7 +1,10 @@
+import logging
 from typing import Any
 
 from custom_rag.core.base_tool import BaseTool
 from custom_rag.core.llm_provider import LLMProvider
+
+logger = logging.getLogger(__name__)
 
 
 class AgentExecutor:
@@ -43,8 +46,24 @@ class AgentExecutor:
         # OPENAI api call to make a plan given the current system prompt and user query
         plan = self._create_plan(user_query)
 
-        # Append the plan to the system prompt
-        enhanced_instructions = f"{self.system_prompt}\n\nPLAN TO FOLLOW:\n{plan}"
+        # Log the full plan
+        logger.info("\n" + "=" * 80)
+        logger.info("📋 EXECUTION PLAN")
+        logger.info("=" * 80)
+        logger.info(plan)
+        logger.info("=" * 80 + "\n")
+
+        # Append the plan to the system prompt (matching the style expected by system prompt)
+        enhanced_instructions = f"""{self.system_prompt}
+
+═══════════════════════════════════════════════════════════════════════════════
+EXECUTION PLAN FOR THIS QUERY
+═══════════════════════════════════════════════════════════════════════════════
+
+{plan}
+
+═══════════════════════════════════════════════════════════════════════════════
+"""
 
         # Execute with the enhanced instructions
         result = self.llm_provider.execute_with_tools(
