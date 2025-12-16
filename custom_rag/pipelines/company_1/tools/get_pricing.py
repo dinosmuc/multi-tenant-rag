@@ -1,14 +1,13 @@
-"""Tool for calculating pricing and TCO."""
+"""Tool for retrieving pricing information."""
 
-from decimal import Decimal
 from typing import Any
 
 from custom_rag.core.base_tool import BaseTool
-from custom_rag.pipelines.company_1.models import BillingComponent, Product
+from custom_rag.pipelines.company_1.models import BillingComponent, MarketSegment, Product
 
 
 class GetPricingTool(BaseTool):
-    """Calculate pricing and Total Cost of Ownership for products."""
+    """Retrieve all pricing information for products."""
 
     @property
     def name(self) -> str:
@@ -16,9 +15,21 @@ class GetPricingTool(BaseTool):
 
     @property
     def description(self) -> str:
-        return """Calculate complete pricing for selected products including all billing components.
-        Returns line items with one-time, monthly, and yearly costs, plus 3-year TCO.
-        Use after finalizing product selection to build cost estimates."""
+        return """Retrieve all pricing and billing component information for products.
+
+        Returns all billing components with:
+        - component_name: Description that may include pricing logic (e.g., "Base fee covers up to 100 users")
+        - billing_model: One_Time, Monthly, Yearly, Per_Unit, T_and_M
+        - unit_of_measure: Flat, User, Device, GB, Hour, Project, Percentage
+        - price_chf: Unit price in CHF
+        - min_quantity: Minimum/block size (e.g., 50 means "per 50 users")
+        - max_quantity: Maximum/cap or included quantity
+        - is_mandatory: Whether component is required
+        - tier_name: Tier if applicable (Gold, Silver, etc.)
+
+        Also returns market segment info with included_users and included_hours if available.
+
+        YOU must calculate the final price based on the component descriptions and user's quantities."""
 
     @property
     def parameters(self) -> dict[str, Any]:
@@ -28,11 +39,7 @@ class GetPricingTool(BaseTool):
                 "product_ids": {
                     "type": "array",
                     "items": {"type": "string"},
-                    "description": "List of product IDs to price",
-                },
-                "quantities": {
-                    "type": "object",
-                    "description": "Optional quantities for per-unit billing (e.g., {'users': 200, 'devices': 50})",
+                    "description": "List of product IDs to get pricing for",
                 },
             },
             "required": ["product_ids"],
@@ -40,22 +47,20 @@ class GetPricingTool(BaseTool):
 
     def execute(self, args: dict[str, Any], context: dict[str, Any]) -> Any:
         """
-        Calculate pricing from billing_components table.
+        Retrieve all pricing information from billing_components and market_segments.
 
         Args:
-            args: Tool arguments with product_ids and optional quantities
+            args: Tool arguments with product_ids
             context: Request context with db connection
 
         Returns:
-            Dict with detailed pricing breakdown and TCO
+            Dict with all billing components and segment info for the model to calculate
         """
         db = context.get("db")
         if not db:
             return {"error": "Database connection not available"}
 
         product_ids = args.get("product_ids", [])
-        quantities = args.get("quantities", {})
-
         if not product_ids:
             return {"error": "No product IDs provided"}
 
@@ -63,141 +68,74 @@ class GetPricingTool(BaseTool):
             session = db.get_session()
 
             # Get product names
-            products_query = (
-                session.query(Product).filter(Product.id.in_(product_ids)).all()
-            )
-            product_names = {p.id: p.name for p in products_query}
+            products = session.query(Product).filter(Product.id.in_(product_ids)).all()
+            product_info = {p.id: {"name": p.name, "product_type": p.product_type} for p in products}
 
-            # Get billing components for all products
-            components_query = (
+            # Get ALL billing components with ALL fields
+            components = (
                 session.query(BillingComponent)
                 .filter(BillingComponent.product_id.in_(product_ids))
+                .order_by(BillingComponent.product_id, BillingComponent.is_mandatory.desc())
+                .all()
+            )
+
+            # Get market segments (may have included_users/hours)
+            segments = (
+                session.query(MarketSegment)
+                .filter(MarketSegment.product_id.in_(product_ids))
                 .all()
             )
 
             # Organize by product
-            line_items = []
-            one_time_total = Decimal("0")
-            monthly_total = Decimal("0")
-            yearly_total = Decimal("0")
-
+            pricing_data = []
             for product_id in product_ids:
-                product_components = [
-                    c for c in components_query if c.product_id == product_id
-                ]
+                product_components = [c for c in components if c.product_id == product_id]
+                product_segments = [s for s in segments if s.product_id == product_id]
 
-                if not product_components:
-                    line_items.append(
-                        {
-                            "product_id": product_id,
-                            "product_name": product_names.get(
-                                product_id, "Unknown Product"
-                            ),
-                            "components": [],
-                            "warning": "No billing components found",
-                        }
-                    )
-                    continue
-
+                # Build component list with ALL fields
                 components_list = []
-                for component in product_components:
-                    # Determine quantity
-                    quantity = 1
-                    if (
-                        component.unit_of_measure
-                        and component.unit_of_measure.lower()
-                        in [
-                            "user",
-                            "users",
-                        ]
-                    ):
-                        quantity = quantities.get(
-                            "users", quantities.get("quantity", 1)
-                        )
-                    elif (
-                        component.unit_of_measure
-                        and component.unit_of_measure.lower()
-                        in [
-                            "device",
-                            "devices",
-                        ]
-                    ):
-                        quantity = quantities.get(
-                            "devices", quantities.get("quantity", 1)
-                        )
-
-                    # Apply min_quantity
-                    if component.min_quantity:
-                        quantity = max(quantity, component.min_quantity)
-
-                    # Apply max_quantity cap
-                    if component.max_quantity:
-                        quantity = min(quantity, component.max_quantity)
-
-                    # Calculate total
-                    unit_price = component.price_chf or Decimal("0")
-                    total = unit_price * Decimal(str(quantity))
-
-                    # Add to totals based on billing model
-                    if component.billing_model == "One_Time":
-                        one_time_total += total
-                    elif component.billing_model == "Monthly":
-                        monthly_total += total
-                    elif component.billing_model == "Yearly":
-                        yearly_total += total
-
-                    component_info = {
-                        "component_name": component.component_name,
-                        "billing_model": component.billing_model,
-                        "unit_of_measure": component.unit_of_measure,
-                        "quantity": quantity,
-                        "unit_price_chf": float(unit_price),
-                        "total_chf": float(total),
-                        "is_mandatory": component.is_mandatory,
+                for comp in product_components:
+                    comp_data = {
+                        "component_id": comp.component_id,
+                        "component_name": comp.component_name,
+                        "billing_model": comp.billing_model,
+                        "unit_of_measure": comp.unit_of_measure,
+                        "price_chf": float(comp.price_chf) if comp.price_chf else None,
+                        "price_eur": float(comp.price_eur) if comp.price_eur else None,
+                        "min_quantity": comp.min_quantity,
+                        "max_quantity": comp.max_quantity,
+                        "is_mandatory": comp.is_mandatory,
+                        "tier_name": comp.tier_name,
+                        "applies_to_segments": comp.applies_to_segments,
                     }
+                    components_list.append(comp_data)
 
-                    # Include optional new fields if present
-                    if component.tier_name:
-                        component_info["tier_name"] = component.tier_name
-                    if component.price_eur:
-                        component_info["unit_price_eur"] = float(component.price_eur)
-                        component_info["total_eur"] = float(
-                            component.price_eur * Decimal(str(quantity))
-                        )
-                    if component.applies_to_segments:
-                        component_info[
-                            "applies_to_segments"
-                        ] = component.applies_to_segments
-
-                    components_list.append(component_info)
-
-                line_items.append(
-                    {
-                        "product_id": product_id,
-                        "product_name": product_names.get(
-                            product_id, "Unknown Product"
-                        ),
-                        "components": components_list,
+                # Build segment list
+                segments_list = []
+                for seg in product_segments:
+                    seg_data = {
+                        "segment": seg.segment,
+                        "is_available": seg.is_available,
+                        "included_users": seg.included_users,
+                        "included_hours": seg.included_hours,
+                        "sla_tier": seg.sla_tier,
                     }
-                )
+                    segments_list.append(seg_data)
 
-            # Calculate summary
-            yearly_from_monthly = monthly_total * 12
-            total_yearly = yearly_total + yearly_from_monthly
-            three_year_tco = one_time_total + (total_yearly * 3)
+                pricing_data.append({
+                    "product_id": product_id,
+                    "product_name": product_info.get(product_id, {}).get("name", "Unknown"),
+                    "product_type": product_info.get(product_id, {}).get("product_type"),
+                    "billing_components": components_list,
+                    "market_segments": segments_list if segments_list else None,
+                })
 
             session.close()
 
             return {
-                "line_items": line_items,
-                "summary": {
-                    "one_time_total_chf": float(one_time_total),
-                    "monthly_total_chf": float(monthly_total),
-                    "yearly_total_chf": float(total_yearly),
-                    "three_year_tco_chf": float(three_year_tco),
-                },
-                "quantities_applied": quantities if quantities else None,
+                "pricing": pricing_data,
+                "note": "Review component_name for pricing logic. Use min_quantity as block size, max_quantity as cap or included amount. Calculate totals based on user's requirements.",
             }
 
         except Exception as e:
-            return {"error": f"Failed to calculate pricing: {str(e)}"}
+            return {"error": f"Failed to get pricing: {str(e)}"}

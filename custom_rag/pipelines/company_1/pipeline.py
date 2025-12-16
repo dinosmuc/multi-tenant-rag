@@ -7,9 +7,11 @@ from custom_rag.core.agent_executor import AgentExecutor
 from custom_rag.core.base_pipeline import BasePipeline
 from custom_rag.core.base_tool import BaseTool
 from custom_rag.pipelines.company_1.prompts.system_prompt import SYSTEM_PROMPT
-from custom_rag.pipelines.company_1.tools.build_answer import BuildAnswerTool
 from custom_rag.pipelines.company_1.tools.check_compatibility import (
     CheckCompatibilityTool,
+)
+from custom_rag.pipelines.company_1.tools.create_final_answer import (
+    CreateFinalAnswerTool,
 )
 from custom_rag.pipelines.company_1.tools.filter_by_compliance import (
     FilterByComplianceTool,
@@ -21,9 +23,6 @@ from custom_rag.pipelines.company_1.tools.get_product_details import (
 )
 from custom_rag.pipelines.company_1.tools.get_project_phases import GetProjectPhasesTool
 from custom_rag.pipelines.company_1.tools.semantic_search import SemanticSearchTool
-from custom_rag.pipelines.company_1.tools.submit_final_answer import (
-    SubmitFinalAnswerTool,
-)
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +43,7 @@ class Company1Pipeline(BasePipeline):
         Return all available tools for this pipeline.
 
         Returns:
-            List of 9 tool instances
+            List of 8 tool instances
         """
         return [
             SemanticSearchTool(),
@@ -54,8 +53,7 @@ class Company1Pipeline(BasePipeline):
             GetProjectPhasesTool(),
             CheckCompatibilityTool(),
             FilterByComplianceTool(),
-            BuildAnswerTool(),
-            SubmitFinalAnswerTool(),
+            CreateFinalAnswerTool(),
         ]
 
     def get_system_prompt(self) -> str:
@@ -92,9 +90,6 @@ class Company1Pipeline(BasePipeline):
         logger.info(f"🤖 LLM: {context.get('llm_provider', 'Unknown')}")
         logger.info("=" * 100 + "\n")
 
-        # Initialize answer_builder in context
-        context["answer_builder"] = {}
-
         # Add db and weaviate connections to context
         context["db"] = self.db
         context["weaviate"] = self.weaviate
@@ -102,7 +97,7 @@ class Company1Pipeline(BasePipeline):
         # Get LLM provider from context
         llm_provider = context.get("llm_provider")
         if not llm_provider:
-            logger.error("❌ LLM provider not available in context")
+            logger.error("LLM provider not available in context")
             return {
                 "output": {"error": "LLM provider not available in context"},
                 "iterations": 0,
@@ -118,26 +113,18 @@ class Company1Pipeline(BasePipeline):
         )
 
         # Execute agentic loop
-        logger.info("🚀 Starting agent executor...")
+        logger.info("Starting agent executor...")
         result = agent_executor.execute(context)
 
-        # Extract the progressively built answer
-        final_answer = context.get("answer_builder", {})
-
-        # Debug logging
-        logger.info(f"📊 Answer builder keys: {list(final_answer.keys())}")
-        non_empty_sections = [k for k, v in final_answer.items() if v]
-        logger.info(f"📊 Non-empty sections: {non_empty_sections}")
-
-        # If answer_builder has content, use it; otherwise use raw output
-        if final_answer and any(final_answer.values()):
+        # Get the final answer from context (set by create_final_answer tool)
+        # or fall back to the raw output from the agent
+        final_answer = context.get("final_answer")
+        if final_answer:
             output = final_answer
-            logger.info(
-                f"📦 Answer builder has {len(non_empty_sections)} sections with content"
-            )
+            logger.info("Using final answer from create_final_answer tool")
         else:
             output = result.get("output", "No output generated")
-            logger.info("📦 Using raw output (answer_builder is empty)")
+            logger.info("Using raw output (no final answer created)")
 
         logger.info("\n" + "=" * 100)
         logger.info("✅ COMPANY_1 PIPELINE COMPLETED")

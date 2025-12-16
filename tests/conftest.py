@@ -3,6 +3,28 @@ from unittest.mock import MagicMock, Mock
 import pytest
 
 
+def pytest_ignore_collect(path, config):  # noqa: ARG001
+    """
+    Exclude `test_cases.py` from normal pytest runs.
+
+    That module is an expensive end-to-end evaluation harness that can require
+    live OpenAI/DB/Weaviate access. Run it manually as a standalone script:
+    `python tests/test_cases.py ...`
+
+    If you *really* want pytest to collect it, set `RUN_RAG_EVAL_TESTS=1`.
+    """
+    import os
+
+    if os.getenv("RUN_RAG_EVAL_TESTS") == "1":
+        return False
+
+    filename = getattr(path, "basename", None)  # pytest <8 uses py.path
+    if filename is None:
+        filename = getattr(path, "name", "")
+
+    return filename == "test_cases.py"
+
+
 @pytest.fixture
 def mock_database_url():
     """Provide a mock database URL for testing."""

@@ -1,0 +1,48 @@
+{
+  "summary": {
+    "total_tests": 1,
+    "successful_tests": 1,
+    "failed_tests": 0,
+    "success_rate": 100.0,
+    "average_execution_time": 40.107164,
+    "timestamp": "2025-12-16T13:53:37.606942"
+  },
+  "detailed_results": [
+    {
+      "test_id": "test_case_1",
+      "description": "Simple semantic lookup for an Azure landing zone offering in Switzerland.",
+      "query": "We're just starting with Azure and need a secure, compliant landing zone in the Swiss region. Do you offer a standardized service for that?",
+      "system_response": "{\n  \"output\": \"**Recommended catalog product:** **CLOUD-001 \\u2013 Azure Swiss Landing Zone** (Microsoft)  \\nService family: Cloud | Type: Projekt | Status: Active | Standard portfolio: Yes\\n\\n### Why it matches\\n- **Swiss data residency:** Product data residency is **Switzerland**; it is designed for deployment in **Azure Switzerland North (Zurich)** with governance controls to block deployments to non\\u2011Swiss regions.\\n- **Secure baseline / CAF-aligned landing zone:** Implements a **hub-and-spoke** network topology and governance via **Azure Policy**, plus identity/RBAC setup (per product description).\\n- **Good fit for first migrations or standardization:** Use cases include organizations starting cloud migration and enterprises standardizing multiple subscriptions.\\n\\n### Scope / deliverables (from project phases)\\n1) **Architecture Design**: HLD document, network topology, governance definition  \\n2) **Build & Deploy**: Terraform scripts, hub-spoke network, identity configuration  \\n3) **Security Validation**: Policy audit, penetration test, handover documentation\\n\\n### Dependencies / compatibility\\n- **Dependencies:** No required or recommended catalog dependencies listed for CLOUD-001.\\n- **Incompatibilities:** None found in the catalog compatibility check.\\n\\n### Pricing (CHF)\\nOne-time project fees (mandatory + optional components):\\n- **Architecture & Deployment (mandatory):** CHF **12,500** per project\\n- **Governance Policy Pack (optional add-on):** CHF **4,500** flat\\n\\n**Total cost scenarios:**\\n- **Minimum (mandatory only):** **CHF 12,500** one-time\\n- **With optional Governance Policy Pack:** **CHF 17,000** one-time\\n\\n### Compliance notes\\n- Certifications are **not specified** in the catalog entry for this product (empty list), but the product is explicitly positioned as Swiss-compliance focused and enforces Switzerland-only region controls.\\n\\nIf you share whether you need **ExpressRoute**, **DR to Switzerland West**, or **ongoing operations/SOC**, I can propose the next catalog building blocks and calculate a full end-to-end TCO.\",\n  \"metadata\": {\n    \"iterations\": 4,\n    \"tools_used\": [\n      \"semantic_search\",\n      \"get_product_details\",\n      \"get_pricing\",\n      \"get_dependencies\",\n      \"get_project_phases\",\n      \"check_compatibility\",\n      \"get_compliance_info\",\n      \"create_final_answer\"\n    ]\n  }\n}",
+      "expected_solution": "The solution should identify 'Azure Swiss Landing Zone' (CLOUD-001) as the primary recommendation and briefly explain that it is a standardized project to build a governed Azure landing zone in Switzerland, including hub-and-spoke networking and CAF-based governance tailored to Swiss regulatory needs. :contentReference[oaicite:0]{index=0}",
+      "openai_evaluation": {
+        "overall_score": 9,
+        "is_satisfactory": true,
+        "criteria_scores": {
+          "Correct Identification": 10,
+          "Regional Compliance": 9,
+          "Key Features Description": 9,
+          "User-Friendliness": 8
+        },
+        "criteria_explanations": {
+          "Correct Identification": "The system correctly identifies 'Azure Swiss Landing Zone (CLOUD-001)' as the main recommendation.",
+          "Regional Compliance": "The response clearly states that the service is delivered in the Swiss Azure region and is compliant with Swiss regulations.",
+          "Key Features Description": "The response describes key features such as hub-and-spoke network topology, Azure Policy, and RBAC setup.",
+          "User-Friendliness": "The explanation is mostly user-friendly, though some technical terms are used without simplification."
+        },
+        "strengths": [
+          "Correctly identifies the main product recommendation.",
+          "Clearly mentions Swiss region compliance.",
+          "Describes key features like hub-and-spoke and Azure Policy."
+        ],
+        "weaknesses": [
+          "Some technical terms could be simplified for better user-friendliness."
+        ],
+        "explanation": "The system response effectively addresses the query by recommending the correct product and explaining its compliance and key features. It maintains a balance between technical detail and user-friendliness, though some terms could be simplified further.",
+        "recommendation": "Simplify technical terms like 'RBAC' and 'CAF' for a broader audience."
+      },
+      "is_successful": true,
+      "error_message": "",
+      "execution_time": 40.107164
+    }
+  ]
+}

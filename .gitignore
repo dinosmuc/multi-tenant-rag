@@ -52,6 +52,7 @@ db.sqlite3-journal
 .coverage
 htmlcov/
 *.cover
+tests/result.json
 
 # MyPy
 .mypy_cache/

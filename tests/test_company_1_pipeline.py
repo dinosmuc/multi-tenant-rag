@@ -5,11 +5,10 @@ from unittest.mock import Mock, patch
 import pytest
 
 from custom_rag.pipelines.company_1.pipeline import Company1Pipeline
-from custom_rag.pipelines.company_1.tools.build_answer import BuildAnswerTool
-from custom_rag.pipelines.company_1.tools.semantic_search import SemanticSearchTool
-from custom_rag.pipelines.company_1.tools.submit_final_answer import (
-    SubmitFinalAnswerTool,
+from custom_rag.pipelines.company_1.tools.create_final_answer import (
+    CreateFinalAnswerTool,
 )
+from custom_rag.pipelines.company_1.tools.semantic_search import SemanticSearchTool
 
 
 class TestCompany1Pipeline:
@@ -26,13 +25,13 @@ class TestCompany1Pipeline:
         assert pipeline is not None
         assert pipeline.config == config
 
-    def test_pipeline_has_9_tools(self):
-        """Test that pipeline provides all 9 tools."""
+    def test_pipeline_has_8_tools(self):
+        """Test that pipeline provides all 8 tools."""
         config = {"weaviate_collection": "Company1Products"}
         pipeline = Company1Pipeline(config)
         tools = pipeline.get_tools()
 
-        assert len(tools) == 9
+        assert len(tools) == 8
         tool_names = [tool.name for tool in tools]
         assert "semantic_search" in tool_names
         assert "get_product_details" in tool_names
@@ -40,9 +39,8 @@ class TestCompany1Pipeline:
         assert "get_dependencies" in tool_names
         assert "get_project_phases" in tool_names
         assert "check_compatibility" in tool_names
-        assert "filter_by_compliance" in tool_names
-        assert "build_answer" in tool_names
-        assert "submit_final_answer" in tool_names
+        assert "get_compliance_info" in tool_names
+        assert "create_final_answer" in tool_names
 
     def test_pipeline_has_system_prompt(self):
         """Test that pipeline provides system prompt."""
@@ -54,13 +52,18 @@ class TestCompany1Pipeline:
         assert len(prompt) > 1000  # Should be comprehensive
         assert "Company_1" in prompt
         assert "DATABASE SCHEMAS" in prompt
-        assert "WORKFLOW" in prompt
+        assert "COMPLETING THE TASK" in prompt
+        assert "TOOL USAGE GUIDELINES" in prompt
 
     @patch("custom_rag.pipelines.company_1.pipeline.AgentExecutor")
-    def test_pipeline_execute_initializes_answer_builder(self, mock_executor_class):
-        """Test that execute initializes answer_builder in context."""
+    def test_pipeline_execute_injects_connections_and_returns_output(
+        self, mock_executor_class
+    ):
+        """Test that execute injects db/weaviate into context and returns output."""
         config = {"weaviate_collection": "Company1Products", "max_iterations": 100}
         pipeline = Company1Pipeline(config)
+        pipeline.db = Mock()
+        pipeline.weaviate = Mock()
 
         # Mock the executor
         mock_executor = Mock()
@@ -82,12 +85,11 @@ class TestCompany1Pipeline:
         # Execute
         result = pipeline.execute(context)
 
-        # Check answer_builder was initialized
-        assert "answer_builder" in context
-        assert isinstance(context["answer_builder"], dict)
+        assert context["db"] is pipeline.db
+        assert context["weaviate"] is pipeline.weaviate
 
         # Check result
-        assert "output" in result
+        assert result["output"] == "test output"
         assert "iterations" in result
         assert "tools_used" in result
 
@@ -149,110 +151,31 @@ class TestSemanticSearchTool:
         assert result["products"][0]["relevance"] == "high"
 
 
-class TestBuildAnswerTool:
-    """Test build_answer tool."""
+class TestCreateFinalAnswerTool:
+    """Tests for create_final_answer tool."""
 
     def test_tool_has_correct_name(self):
         """Test tool name."""
-        tool = BuildAnswerTool()
-        assert tool.name == "build_answer"
+        tool = CreateFinalAnswerTool()
+        assert tool.name == "create_final_answer"
 
-    def test_execute_initializes_answer_builder(self):
-        """Test tool initializes answer_builder if not exists."""
-        tool = BuildAnswerTool()
-        context = {}
+    def test_execute_rejects_empty_answer(self):
+        """Test tool rejects empty answers."""
+        tool = CreateFinalAnswerTool()
 
-        result = tool.execute(
-            {
-                "section": "matched_requirements",
-                "data": {"requirement": "test", "status": "matched"},
-            },
-            context,
-        )
-
-        assert "answer_builder" in context
-        assert "success" in result
-        assert result["success"] is True
-
-    def test_execute_adds_to_section(self):
-        """Test tool adds data to section."""
-        tool = BuildAnswerTool()
-        context = {"answer_builder": {"matched_requirements": []}}
-
-        result = tool.execute(
-            {
-                "section": "matched_requirements",
-                "action": "add",
-                "data": {"requirement": "SAP", "status": "matched"},
-            },
-            context,
-        )
-
-        assert result["success"] is True
-        assert len(context["answer_builder"]["matched_requirements"]) == 1
-        assert (
-            context["answer_builder"]["matched_requirements"][0]["requirement"] == "SAP"
-        )
-
-    def test_execute_updates_section(self):
-        """Test tool updates entire section."""
-        tool = BuildAnswerTool()
-        context = {"answer_builder": {"task_type": None}}
-
-        result = tool.execute(
-            {"section": "task_type", "action": "update", "data": "gap_analysis"},
-            context,
-        )
-
-        assert result["success"] is True
-        assert context["answer_builder"]["task_type"] == "gap_analysis"
-
-    def test_execute_rejects_invalid_section(self):
-        """Test tool rejects invalid section name."""
-        tool = BuildAnswerTool()
-        context = {"answer_builder": {}}
-
-        result = tool.execute({"section": "invalid_section", "data": "test"}, context)
-
+        result = tool.execute({"answer": "   "}, {})
         assert "error" in result
 
-
-class TestSubmitFinalAnswerTool:
-    """Test submit_final_answer tool."""
-
-    def test_tool_has_correct_name(self):
-        """Test tool name."""
-        tool = SubmitFinalAnswerTool()
-        assert tool.name == "submit_final_answer"
-
-    def test_execute_returns_error_if_no_answer_built(self):
-        """Test tool returns error if answer_builder is empty."""
-        tool = SubmitFinalAnswerTool()
+    def test_execute_stores_final_answer_in_context(self):
+        """Test tool stores final_answer in the context for the pipeline to return."""
+        tool = CreateFinalAnswerTool()
         context = {}
 
-        result = tool.execute({"summary": "test"}, context)
-
-        assert "error" in result
-
-    def test_execute_returns_final_answer(self):
-        """Test tool returns complete answer."""
-        tool = SubmitFinalAnswerTool()
-        context = {
-            "answer_builder": {
-                "task_type": "gap_analysis",
-                "matched_requirements": [{"requirement": "SAP", "status": "matched"}],
-            }
-        }
-
-        result = tool.execute(
-            {"summary": "Found 1 matching product", "confidence": "high"}, context
-        )
+        result = tool.execute({"answer": "Final response"}, context)
 
         assert result["status"] == "completed"
-        assert result["summary"] == "Found 1 matching product"
-        assert result["confidence"] == "high"
-        assert "final_answer" in result
-        assert result["final_answer"]["task_type"] == "gap_analysis"
+        assert context["final_answer"] == "Final response"
+        assert context["_task_completed"] is True
 
 
 class TestToolsReceiveContext:

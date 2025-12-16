@@ -11,7 +11,7 @@ from custom_rag.pipelines.company_1.models import (
 
 
 class CheckCompatibilityTool(BaseTool):
-    """Verify technical compatibility and platform requirements."""
+    """Check technical compatibility and platform requirements."""
 
     @property
     def name(self) -> str:
@@ -19,9 +19,15 @@ class CheckCompatibilityTool(BaseTool):
 
     @property
     def description(self) -> str:
-        return """Check technical compatibility and platform requirements for selected products.
-        Verifies platform requirements and checks for incompatible product combinations.
-        Use before finalizing solution to ensure everything works together."""
+        return """Check technical compatibility for selected products.
+
+        Returns:
+        - incompatibilities: Products that CANNOT be used together (100% accurate from database)
+        - platform_requirements: What platforms/versions each product requires
+
+        The incompatibilities check is definitive - if products are marked incompatible in the database, they cannot be used together.
+
+        YOU should compare platform_requirements against customer's environment to identify potential issues."""
 
     @property
     def parameters(self) -> dict[str, Any]:
@@ -33,10 +39,6 @@ class CheckCompatibilityTool(BaseTool):
                     "items": {"type": "string"},
                     "description": "List of product IDs to check compatibility for",
                 },
-                "customer_context": {
-                    "type": "object",
-                    "description": "Optional customer current state (e.g., {'current_platform': 'Windows Server 2016', 'users': 200})",
-                },
             },
             "required": ["product_ids"],
         }
@@ -46,19 +48,17 @@ class CheckCompatibilityTool(BaseTool):
         Check compatibility from platform_compatibility and dependencies tables.
 
         Args:
-            args: Tool arguments with product_ids and optional customer_context
+            args: Tool arguments with product_ids
             context: Request context with db connection
 
         Returns:
-            Dict with compatibility status, platform requirements, and warnings
+            Dict with incompatibilities (definitive) and platform requirements (for model to analyze)
         """
         db = context.get("db")
         if not db:
             return {"error": "Database connection not available"}
 
         product_ids = args.get("product_ids", [])
-        customer_context = args.get("customer_context", {})
-
         if not product_ids:
             return {"error": "No product IDs provided"}
 
@@ -66,19 +66,11 @@ class CheckCompatibilityTool(BaseTool):
             session = db.get_session()
 
             # Get product names
-            products_query = (
-                session.query(Product).filter(Product.id.in_(product_ids)).all()
-            )
-            product_names = {p.id: p.name for p in products_query}
+            products = session.query(Product).filter(Product.id.in_(product_ids)).all()
+            product_names = {p.id: p.name for p in products}
+            product_infra = {p.id: p.infrastructure_cloud_provider for p in products}
 
-            # Get platform compatibility requirements
-            platform_reqs = (
-                session.query(PlatformCompatibility)
-                .filter(PlatformCompatibility.product_id.in_(product_ids))
-                .all()
-            )
-
-            # Check for incompatible dependencies
+            # Check for incompatible dependencies (100% accurate - from database)
             incompatible_deps = (
                 session.query(Dependency)
                 .filter(
@@ -89,77 +81,54 @@ class CheckCompatibilityTool(BaseTool):
                 .all()
             )
 
-            # Organize platform requirements
+            # Get platform compatibility requirements
+            platform_reqs = (
+                session.query(PlatformCompatibility)
+                .filter(PlatformCompatibility.product_id.in_(product_ids))
+                .all()
+            )
+
+            # Build incompatibilities list (definitive)
+            incompatibilities = []
+            for dep in incompatible_deps:
+                incompatibilities.append({
+                    "product_id": dep.product_id,
+                    "product_name": product_names.get(dep.product_id, "Unknown"),
+                    "incompatible_with_id": dep.depends_on_product_id,
+                    "incompatible_with_name": product_names.get(dep.depends_on_product_id, "Unknown"),
+                    "reason": dep.reason,
+                })
+
+            # Build platform requirements (for model to analyze)
             platform_requirements = []
             for product_id in product_ids:
-                product_platforms = [
-                    p for p in platform_reqs if p.product_id == product_id
-                ]
+                product_platforms = [p for p in platform_reqs if p.product_id == product_id]
 
-                if product_platforms:
-                    platforms = []
-                    for plat in product_platforms:
-                        platform_info = {
-                            "name": plat.platform_name,
-                            "version": plat.platform_version,
-                        }
-                        # Include compatibility notes if present
-                        if plat.compatibility_notes:
-                            platform_info["notes"] = plat.compatibility_notes
-                        platforms.append(platform_info)
+                platforms = []
+                for plat in product_platforms:
+                    platforms.append({
+                        "platform_name": plat.platform_name,
+                        "platform_version": plat.platform_version,
+                        "compatibility_notes": plat.compatibility_notes,
+                    })
 
-                    platform_requirements.append(
-                        {
-                            "product_id": product_id,
-                            "product_name": product_names.get(
-                                product_id, "Unknown Product"
-                            ),
-                            "platforms": platforms,
-                        }
-                    )
-
-            # Check for incompatibilities
-            issues = []
-            for incomp in incompatible_deps:
-                issues.append(
-                    {
-                        "severity": "critical",
-                        "message": f"Incompatibility: {product_names.get(incomp.product_id)} cannot be used with {product_names.get(incomp.depends_on_product_id)}",
-                        "reason": incomp.reason,
-                        "affected_products": [
-                            incomp.product_id,
-                            incomp.depends_on_product_id,
-                        ],
-                    }
-                )
-
-            # Generate warnings based on customer context
-            warnings = []
-            if customer_context.get("current_platform"):
-                current_platform = customer_context["current_platform"].lower()
-                for req in platform_requirements:
-                    for platform in req["platforms"]:
-                        if platform["name"].lower() not in current_platform:
-                            warnings.append(
-                                {
-                                    "severity": "medium",
-                                    "message": f"{req['product_name']} requires {platform['name']} {platform['version']}",
-                                    "affected_products": [req["product_id"]],
-                                    "recommendation": f"Customer may need to upgrade from {customer_context['current_platform']}",
-                                }
-                            )
-
-            # Determine overall compatibility
-            compatible = len(issues) == 0
+                platform_requirements.append({
+                    "product_id": product_id,
+                    "product_name": product_names.get(product_id, "Unknown"),
+                    "infrastructure_cloud_provider": product_infra.get(product_id),
+                    "platforms": platforms if platforms else None,
+                })
 
             session.close()
 
+            # Compatibility is 100% determined by incompatibilities in database
+            has_incompatibilities = len(incompatibilities) > 0
+
             return {
-                "compatible": compatible,
-                "issues": issues,
-                "warnings": warnings,
+                "has_incompatibilities": has_incompatibilities,
+                "incompatibilities": incompatibilities,
                 "platform_requirements": platform_requirements,
-                "customer_context_provided": bool(customer_context),
+                "note": "incompatibilities are definitive (from database). Compare platform_requirements against customer environment yourself.",
             }
 
         except Exception as e:
