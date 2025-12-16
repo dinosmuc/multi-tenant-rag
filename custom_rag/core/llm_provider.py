@@ -41,13 +41,13 @@ class LLMProvider(ABC):
         pass
 
     @abstractmethod
-    def create_plan(self, user_query: str, system_prompt: str) -> str:
+    def create_plan(self, user_query: str, planning_prompt: str) -> str:
         """
         Create a strategic plan using the LLM.
 
         Args:
             user_query: The user's original query
-            system_prompt: The system prompt for context
+            planning_prompt: The planning prompt with instructions and context
 
         Returns:
             A strategic plan as a string

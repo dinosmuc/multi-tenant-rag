@@ -14,6 +14,7 @@ class AgentExecutor:
         self,
         tools: list[BaseTool],
         system_prompt: str,
+        planning_prompt: str,
         llm_provider: LLMProvider,
         max_iterations: int = 100,
     ):
@@ -23,11 +24,13 @@ class AgentExecutor:
         Args:
             tools: List of available tool instances
             system_prompt: System instructions for the LLM
+            planning_prompt: Planning instructions for creating execution plans
             llm_provider: LLM provider instance
             max_iterations: Maximum number of iterations (default 100)
         """
         self.tools = tools
         self.system_prompt = system_prompt
+        self.planning_prompt = planning_prompt
         self.llm_provider = llm_provider
         self.max_iterations = max_iterations
 
@@ -86,4 +89,4 @@ EXECUTION PLAN FOR THIS QUERY
         Returns:
             A strategic plan as a string
         """
-        return self.llm_provider.create_plan(user_query, self.system_prompt)
+        return self.llm_provider.create_plan(user_query, self.planning_prompt)

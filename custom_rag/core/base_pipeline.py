@@ -83,6 +83,16 @@ class BasePipeline(ABC):
         pass
 
     @abstractmethod
+    def get_planning_prompt(self) -> str:
+        """
+        Return planning prompt for the LLM agent.
+
+        Returns:
+            Planning prompt string
+        """
+        pass
+
+    @abstractmethod
     def execute(self, context: dict[str, Any]) -> dict[str, Any]:
         """
         Execute the pipeline.

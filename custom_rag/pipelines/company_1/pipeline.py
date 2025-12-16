@@ -6,6 +6,7 @@ from typing import Any
 from custom_rag.core.agent_executor import AgentExecutor
 from custom_rag.core.base_pipeline import BasePipeline
 from custom_rag.core.base_tool import BaseTool
+from custom_rag.pipelines.company_1.prompts.planning_prompt import PLANNING_PROMPT
 from custom_rag.pipelines.company_1.prompts.system_prompt import SYSTEM_PROMPT
 from custom_rag.pipelines.company_1.tools.check_compatibility import (
     CheckCompatibilityTool,
@@ -65,6 +66,15 @@ class Company1Pipeline(BasePipeline):
         """
         return SYSTEM_PROMPT
 
+    def get_planning_prompt(self) -> str:
+        """
+        Return planning prompt with execution planning instructions.
+
+        Returns:
+            Complete planning prompt string
+        """
+        return PLANNING_PROMPT
+
     def execute(self, context: dict[str, Any]) -> dict[str, Any]:
         """
         Execute the pipeline with agentic loop.
@@ -108,6 +118,7 @@ class Company1Pipeline(BasePipeline):
         agent_executor = AgentExecutor(
             tools=self.tools,
             system_prompt=self.get_system_prompt(),
+            planning_prompt=self.get_planning_prompt(),
             llm_provider=llm_provider,
             max_iterations=self.config.get("max_iterations", 100),
         )
