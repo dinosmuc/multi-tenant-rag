@@ -39,3 +39,17 @@ class LLMProvider(ABC):
             Dict with output, iterations, and tools_used
         """
         pass
+
+    @abstractmethod
+    def create_plan(self, user_query: str, system_prompt: str) -> str:
+        """
+        Create a strategic plan using the LLM.
+
+        Args:
+            user_query: The user's original query
+            system_prompt: The system prompt for context
+
+        Returns:
+            A strategic plan as a string
+        """
+        pass

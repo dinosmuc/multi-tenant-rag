@@ -204,6 +204,65 @@ class OpenAIProvider(LLMProvider):
             },
         }
 
+    def create_plan(self, user_query: str, system_prompt: str) -> str:
+        """
+        Create a strategic plan using OpenAI Responses API.
+
+        Args:
+            user_query: The user's original query
+            system_prompt: The system prompt for context
+
+        Returns:
+            A strategic plan as a string
+        """
+        logger.info("🎯 Creating strategic plan...")
+        logger.info(f"📝 Query: {user_query}")
+
+        # Use system prompt as instructions
+        instructions = system_prompt
+        
+        # Format input with the specific template
+        formatted_input = f"make a game plan for this query {user_query} given this context"
+
+        request_params = {
+            "model": self.model,
+            "instructions": instructions,
+            "input": formatted_input,
+        }
+
+        if self.reasoning_effort:
+            request_params["reasoning"] = {"effort": self.reasoning_effort}
+
+        try:
+            response = self.client.responses.create(**request_params)
+
+            # Track tokens
+            if hasattr(response, "usage") and response.usage:
+                self.total_input_tokens += getattr(response.usage, "input_tokens", 0)
+                self.total_output_tokens += getattr(response.usage, "output_tokens", 0)
+
+            # Extract the plan from the response
+            plan = ""
+            for item in response.output:
+                if item.type == "message":
+                    for content in item.content:
+                        if content.type == "output_text":
+                            plan = content.text
+                            break
+                    if plan:
+                        break
+
+            logger.info(
+                f"📋 Plan created: {plan[:200]}..."
+                if len(plan) > 200
+                else f"📋 Plan created: {plan}"
+            )
+            return plan
+
+        except Exception as e:
+            logger.error(f"❌ Error creating plan: {e}")
+            return f"Failed to create plan: {str(e)}"
+
     def _convert_tools_to_openai_format(
         self, tools: list[BaseTool]
     ) -> list[dict[str, Any]]:

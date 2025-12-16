@@ -40,8 +40,15 @@ class AgentExecutor:
         """
         user_query = context.get("prompt_objects", {}).get("query", "")
 
+        # OPENAI api call to make a plan given the current system prompt and user query
+        plan = self._create_plan(user_query)
+
+        # Append the plan to the system prompt
+        enhanced_instructions = f"{self.system_prompt}\n\nPLAN TO FOLLOW:\n{plan}"
+
+        # Execute with the enhanced instructions
         result = self.llm_provider.execute_with_tools(
-            instructions=self.system_prompt,
+            instructions=enhanced_instructions,
             user_message=user_query,
             tools=self.tools,
             max_iterations=self.max_iterations,
@@ -49,3 +56,15 @@ class AgentExecutor:
         )
 
         return result
+
+    def _create_plan(self, user_query: str) -> str:
+        """
+        Create a strategic plan using the LLM provider.
+
+        Args:
+            user_query: The user's query
+
+        Returns:
+            A strategic plan as a string
+        """
+        return self.llm_provider.create_plan(user_query, self.system_prompt)
