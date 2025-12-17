@@ -142,9 +142,6 @@ Technical constraints regarding hardware/software requirements.
 
 ## VECTOR DATABASE (Weaviate)
 
-**Collection Name:** Company1Products
-**Embedding Model:** text-embedding-3-large (OpenAI)
-**Vector Dimensions:** 3072
 
 ### Searchable Properties (for semantic search):
 - `name` - Official product name

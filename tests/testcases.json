@@ -1,488 +1,46 @@
 [
   {
-    "id": "test_case_1",
-    "description": "Simple semantic lookup for an Azure landing zone offering in Switzerland.",
-    "query": "We're just starting with Azure and need a secure, compliant landing zone in the Swiss region. Do you offer a standardized service for that?",
-    "request_data": {
-      "function_id": "company_1",
-      "llm_provider": "openai",
-      "llm": "gpt-5.2",
-      "prompt_objects": {
-        "query": "We're just starting with Azure and need a secure, compliant landing zone in the Swiss region. Do you offer a standardized service for that?"
-      },
-      "scope_variables": {},
-      "previous_prompt_outputs": {}
-    },
-    "expected_solution": "The solution should identify 'Azure Swiss Landing Zone' (CLOUD-001) as the primary recommendation and briefly explain that it is a standardized project to build a governed Azure landing zone in Switzerland, including hub-and-spoke networking and CAF-based governance tailored to Swiss regulatory needs. :contentReference[oaicite:0]{index=0}",
-    "evaluation_criteria": [
-      "Correctly identifies Azure Swiss Landing Zone (CLOUD-001) as the main answer",
-      "Mentions that the service is delivered in the Swiss Azure region and is compliant/governed",
-      "Describes at least one key feature (e.g., hub-and-spoke, Azure Policy, RBAC, tagging strategy)",
-      "Keeps the explanation user-friendly and non-technical where possible"
-    ]
-  },
-  {
-    "id": "test_case_2",
-    "description": "Basic retrieval of a Swiss-only S3-compatible object storage service.",
-    "query": "Do you have an S3-compatible object storage service that's hosted only in Swiss datacenters and avoids egress fees?",
-    "request_data": {
-      "function_id": "company_1",
-      "llm_provider": "openai",
-      "llm": "gpt-5.2",
-      "prompt_objects": {
-        "query": "Do you have an S3-compatible object storage service that's hosted only in Swiss datacenters and avoids egress fees?"
-      },
-      "scope_variables": {},
-      "previous_prompt_outputs": {}
-    },
-    "expected_solution": "The solution should surface 'Swiss Object Storage (S3)' (CLOUD-002) as the matching service and highlight that it is S3 API compatible, hosted in Swiss Tier IV datacenters, and charges a simple per-GB monthly fee with no egress charges inside Switzerland.",
-    "evaluation_criteria": [
-      "Selects Swiss Object Storage (S3) (CLOUD-002) as the primary answer",
-      "Mentions S3 compatibility and Swiss-only hosting",
-      "States that there are no egress/download fees for Swiss traffic",
-      "Includes a brief description of typical use cases like archives or ransomware-resistant storage"
-    ]
-  },
-  {
-    "id": "test_case_3",
-    "description": "Straightforward backup scenario for Veeam users needing Swiss offsite backup.",
-    "query": "We already use Veeam Backup & Replication on-premise and want to follow the 3-2-1 rule with an offsite Swiss cloud target. Which offering of yours fits, and how is it generally billed?",
-    "request_data": {
-      "function_id": "company_1",
-      "llm_provider": "openai",
-      "llm": "gpt-5.2",
-      "prompt_objects": {
-        "query": "We already use Veeam Backup & Replication on-premise and want to follow the 3-2-1 rule with an offsite Swiss cloud target. Which offering of yours fits, and how is it generally billed?"
-      },
-      "scope_variables": {},
-      "previous_prompt_outputs": {}
-    },
-    "expected_solution": "The solution should recommend 'Veeam Cloud Connect Swiss' (CLOUD-012) as the right fit, explain that it provides a Swiss offsite backup repository with insider protection and optional DRaaS, and describe the billing model (monthly per TB of cloud repository plus an optional monthly fee for the insider-protection add-on). It may also mention that it integrates directly into the Veeam console.",
-    "evaluation_criteria": [
-      "Identifies Veeam Cloud Connect Swiss (CLOUD-012) as the primary service",
-      "References compatibility with Veeam Backup & Replication and support for the 3-2-1 rule",
-      "Explains the high-level billing structure (per TB per month, optional add-on fee)",
-      "Highlights at least one security feature (e.g., insider protection, air-gapped recycle bin)"
-    ]
-  },
-  {
-    "id": "test_case_4",
-    "description": "Segment-aware recommendation of a Swiss-hosted DaaS solution for an SMB.",
-    "query": "We're a small Swiss law firm and want to give staff virtual Windows desktops so that client data never lives on laptops. Is there a Swiss-hosted desktop-as-a-service you provide that's actually offered to SMBs?",
-    "request_data": {
-      "function_id": "company_1",
-      "llm_provider": "openai",
-      "llm": "gpt-5.2",
-      "prompt_objects": {
-        "query": "We're a small Swiss law firm and want to give staff virtual Windows desktops so that client data never lives on laptops. Is there a Swiss-hosted desktop-as-a-service you provide that's actually offered to SMBs?"
-      },
-      "scope_variables": {},
-      "previous_prompt_outputs": {}
-    },
-    "expected_solution": "The solution should recommend 'Swiss Desktop as a Service (DaaS)' (CLOUD-010) and explicitly note that it is available to SMBs according to the market segment data. It should briefly describe that desktops are hosted in Swiss datacenters (Citrix or Azure Virtual Desktop), that no data stays on endpoints, and that pricing is per user per month with standard and GPU options.",
-    "evaluation_criteria": [
-      "Picks Swiss Desktop as a Service (CLOUD-010) rather than unrelated hosting offers",
-      "Checks market segment data and confirms SMB availability",
-      "Mentions Swiss hosting and that data remains in the datacenter",
-      "Describes at least the existence of standard vs GPU user profiles or similar tiers"
-    ]
-  },
-  {
-    "id": "test_case_5",
-    "description": "Distinguish a one-off FinOps project from managed services.",
-    "query": "Our Azure and AWS bills are growing and we suspect a lot of waste, but we don't want a long-running managed service—just a focused engagement to clean things up and set up better governance. Which service should we look at?",
-    "request_data": {
-      "function_id": "company_1",
-      "llm_provider": "openai",
-      "llm": "gpt-5.2",
-      "prompt_objects": {
-        "query": "Our Azure and AWS bills are growing and we suspect a lot of waste, but we don't want a long-running managed service—just a focused engagement to clean things up and set up better governance. Which service should we look at?"
-      },
-      "scope_variables": {},
-      "previous_prompt_outputs": {}
-    },
-    "expected_solution": "The solution should select 'Cloud FinOps & Cost Optimization' (CLOUD-007) and explicitly recognize that it is a project-based consulting engagement rather than an ongoing SLA. The answer should summarize that the service analyses cloud billing, finds zombie resources, recommends reservations/savings plans, and sets up tagging and budget alerts.",
-    "evaluation_criteria": [
-      "Chooses Cloud FinOps & Cost Optimization (CLOUD-007) as the main service",
-      "Correctly interprets it as a project (not a recurring SLA) using the product_type metadata",
-      "Explains the core outcomes: cost analysis, waste reduction, reservation strategy, and FinOps culture",
-      "Avoids recommending unrelated long-term support offerings as the primary answer"
-    ]
-  },
-  {
-    "id": "test_case_6",
-    "description": "Filter backup and archiving offerings by Swiss-only data residency.",
-    "query": "Our compliance team insists that all backup and archiving data must stay strictly in Switzerland. Which of your backup or archiving services fit that requirement?",
-    "request_data": {
-      "function_id": "company_1",
-      "llm_provider": "openai",
-      "llm": "gpt-5.2",
-      "prompt_objects": {
-        "query": "Our compliance team insists that all backup and archiving data must stay strictly in Switzerland. Which of your backup or archiving services fit that requirement?"
-      },
-      "scope_variables": {},
-      "previous_prompt_outputs": {}
-    },
-    "expected_solution": "The solution should return a short list of relevant services whose data_residency is Switzerland, such as Microsoft 365 Swiss Backup (CLOUD-003), Veeam Cloud Connect Swiss (CLOUD-012), Cloud Disaster Recovery (DRaaS) (CLOUD-015), and SAP Data Archiving & ILM (SAP-009). It may also mention Swiss Object Storage (S3) (CLOUD-002) as the underlying Swiss storage option. The answer should explicitly reference that these services are Swiss-hosted and distinguish them from globally hosted or non-backup offerings.",
-    "evaluation_criteria": [
-      "Uses the data_residency and service descriptions to filter for Swiss-only backup/archiving services",
-      "Includes at least CLOUD-003, CLOUD-012, CLOUD-015, and SAP-009 (or a justified subset) in the answer",
-      "Avoids including services whose residency is Global unless clearly explained as an exception",
-      "Clearly states why each recommended service satisfies the Swiss data residency requirement"
-    ]
-  },
-  {
-    "id": "test_case_7",
-    "description": "Check and explain prerequisites for Microsoft 365 Swiss Backup.",
-    "query": "We'd like you to back up our Microsoft 365 tenant to a Swiss datacenter. Apart from signing up for the backup service itself, what other prerequisites from your own catalog or from Microsoft do we need in place?",
-    "request_data": {
-      "function_id": "company_1",
-      "llm_provider": "openai",
-      "llm": "gpt-5.2",
-      "prompt_objects": {
-        "query": "We'd like you to back up our Microsoft 365 tenant to a Swiss datacenter. Apart from signing up for the backup service itself, what other prerequisites from your own catalog or from Microsoft do we need in place?"
-      },
-      "scope_variables": {},
-      "previous_prompt_outputs": {}
-    },
-    "expected_solution": "The solution should identify 'Microsoft 365 Swiss Backup' (CLOUD-003) as the main service and then explain its prerequisites based on the dependency and tech-spec data: you need an active Microsoft 365 tenant with the necessary M365 licenses (referencing the dependency on WP-004 M365 Licensing & Optimization) and global admin access for initial setup. The answer should separate what the customer must already have (licenses, tenant) from optional advisory services the provider can offer.",
-    "evaluation_criteria": [
-      "Correctly identifies Microsoft 365 Swiss Backup (CLOUD-003) as the relevant service",
-      "Reads the 'required' dependency on WP-004 and turns it into natural-language prerequisites (active M365 licenses/tenant)",
-      "Mentions the need for global admin access from the tech specs",
-      "Clearly distinguishes strict prerequisites from optional advisory or optimization services"
-    ]
-  },
-  {
-    "id": "test_case_8",
-    "description": "Numerical pricing reasoning for Swiss Object Storage capacity and appliance.",
-    "query": "For planning purposes: if we stored about 120 TB in your Swiss Object Storage and also used the storage gateway appliance, what kind of recurring and one-time charges are we roughly looking at?",
-    "request_data": {
-      "function_id": "company_1",
-      "llm_provider": "openai",
-      "llm": "gpt-5.2",
-      "prompt_objects": {
-        "query": "For planning purposes: if we stored about 120 TB in your Swiss Object Storage and also used the storage gateway appliance, what kind of recurring and one-time charges are we roughly looking at?"
-      },
-      "scope_variables": {},
-      "previous_prompt_outputs": {}
-    },
-    "expected_solution": "The solution should use the billing metadata for Swiss Object Storage (S3) (CLOUD-002), multiplying the per-GB monthly price by 120 TB (assuming 1 TB ≈ 1,000 GB or explaining the assumption) to estimate the monthly storage cost, and then add the one-time Storage Gateway Appliance fee. The final answer should present an approximate monthly figure for storage plus a separate one-time gateway cost, while reminding the user that there are no egress fees for Swiss traffic.",
-    "evaluation_criteria": [
-      "Looks up the correct unit price (per GB per month) and gateway appliance fee from Billing_Data for CLOUD-002",
-      "Performs a consistent calculation from TB to GB and multiplies to get an approximate monthly charge",
-      "Separately reports recurring vs one-time costs",
-      "Mentions at least once that there are no egress fees, as this materially affects TCO"
-    ]
-  },
-  {
-    "id": "test_case_9",
-    "description": "Differentiate between migration assessment and execution projects on AWS.",
-    "query": "Before we move any servers to the AWS Zurich region, we want an engagement that discovers our workloads, classifies applications with the 6-R framework, and gives us a TCO comparison. Which specific project is that?",
-    "request_data": {
-      "function_id": "company_1",
-      "llm_provider": "openai",
-      "llm": "gpt-5.2",
-      "prompt_objects": {
-        "query": "Before we move any servers to the AWS Zurich region, we want an engagement that discovers our workloads, classifies applications with the 6-R framework, and gives us a TCO comparison. Which specific project is that?"
-      },
-      "scope_variables": {},
-      "previous_prompt_outputs": {}
-    },
-    "expected_solution": "The solution should select 'AWS Swiss Migration Assessment' (CLOUD-004) and explain that it focuses on discovery, 6-R classification, and TCO/roadmap creation before any actual migration work. It should avoid confusing this with execution-focused offerings such as 'Legacy Lift & Shift Migration' (CLOUD-018), though it can mention those as follow-on steps.",
-    "evaluation_criteria": [
-      "Chooses AWS Swiss Migration Assessment (CLOUD-004) as the primary recommendation",
-      "Accurately summarizes its phases (Discovery, Analysis, Strategy) and the 6-R framework",
-      "Correctly distinguishes assessment/roadmap from hands-on migration execution projects like CLOUD-018",
-      "Keeps the explanation tightly tied to the user’s intent of 'before we move any servers'"
-    ]
-  },
-  {
-    "id": "test_case_10",
-    "description": "Select the right SAP technical operations service versus functional AMS.",
-    "query": "As an enterprise SAP customer we want you to run the technical side of our SAP landscape (HANA, Basis, transports, uptime etc.) but we'll handle process design and configuration internally. Which of your SAP services matches that?",
-    "request_data": {
-      "function_id": "company_1",
-      "llm_provider": "openai",
-      "llm": "gpt-5.2",
-      "prompt_objects": {
-        "query": "As an enterprise SAP customer we want you to run the technical side of our SAP landscape (HANA, Basis, transports, uptime etc.) but we'll handle process design and configuration internally. Which of your SAP services matches that?"
-      },
-      "scope_variables": {},
-      "previous_prompt_outputs": {}
-    },
-    "expected_solution": "The solution should recommend 'SAP Basis Gold Operations' (SAP-005) as the primary fit, emphasizing that it covers technical administration of the SAP stack (OS/DB, HANA, NetWeaver, transports, backups, uptime). It may optionally contrast this with 'SAP AMS Platinum Swiss Support' (SAP-002), explaining that AMS covers broader functional support, which the customer explicitly wants to keep in-house.",
-    "evaluation_criteria": [
-      "Identifies SAP Basis Gold Operations (SAP-005) as the main match for technical-only operations",
-      "Uses the full_description to highlight duties like patching, backups, transport management, uptime",
-      "Correctly differentiates SAP-005 from SAP AMS Platinum (SAP-002) and explains why AMS is less appropriate here",
-      "Provides a concise explanation aligning the recommended scope with the user’s desire to keep functional work internal"
-    ]
-  },
-  {
-    "id": "test_case_11",
-    "description": "Combine multiple SAP offerings for a brownfield S/4HANA journey with history retention.",
-    "query": "We're an ECC customer in Switzerland planning a brownfield conversion to S/4HANA and want to keep full financial history for legal reasons. Which SAP services from your portfolio would you typically combine to cover the technical conversion, ongoing operations, and long-term data management?",
-    "request_data": {
-      "function_id": "company_1",
-      "llm_provider": "openai",
-      "llm": "gpt-5.2",
-      "prompt_objects": {
-        "query": "We're an ECC customer in Switzerland planning a brownfield conversion to S/4HANA and want to keep full financial history for legal reasons. Which SAP services from your portfolio would you typically combine to cover the technical conversion, ongoing operations, and long-term data management?"
-      },
-      "scope_variables": {},
-      "previous_prompt_outputs": {}
-    },
-    "expected_solution": "The solution should propose a small bundle of SAP services, at minimum: 'SAP S/4HANA Brownfield Transformation' (SAP-001) for the technical system conversion, 'SAP Basis Gold Operations' (SAP-005) or 'SAP AMS Platinum Swiss Support' (SAP-002) for ongoing operations, and 'SAP Data Archiving & ILM' (SAP-009) to manage long-term data retention and archive off older data while staying compliant. It should briefly describe the role of each and how they fit together over time.",
-    "evaluation_criteria": [
-      "Includes SAP-001 as the core brownfield conversion project",
-      "Adds at least one ongoing operations service (SAP-005 and/or SAP-002) and explains its role",
-      "Includes SAP-009 for data archiving/ILM to handle long-term retention and system size",
-      "Shows a clear narrative of how these services work together across project and run phases"
-    ]
-  },
-  {
-    "id": "test_case_12",
-    "description": "Reason over multi-hop dependencies for the Swiss SOC offering.",
-    "query": "If we buy your 24/7 Swiss SOC service, what other offerings do we need so that endpoint and cloud telemetry actually flows into the SOC and we can enforce policies on laptops?",
-    "request_data": {
-      "function_id": "company_1",
-      "llm_provider": "openai",
-      "llm": "gpt-5.2",
-      "prompt_objects": {
-        "query": "If we buy your 24/7 Swiss SOC service, what other offerings do we need so that endpoint and cloud telemetry actually flows into the SOC and we can enforce policies on laptops?"
-      },
-      "scope_variables": {},
-      "previous_prompt_outputs": {}
-    },
-    "expected_solution": "The solution should start from 'Swiss Managed SOC (24/7)' (SEC-001) and then walk the dependency chain: SEC-001 has a required dependency on 'Endpoint Security (Defender XDR)' (WP-012), which in turn has a recommended dependency on 'Managed Workplace (Intune)' (WP-003) for policy deployment. The answer should explain that you typically combine the SOC with Defender XDR on endpoints and Intune-based device management, and optionally note any other key log sources the SOC expects.",
-    "evaluation_criteria": [
-      "Identifies Swiss Managed SOC (SEC-001) as the core service",
-      "Reads the 'required' dependency from SEC-001 to WP-012 and reflects it in natural language",
-      "Reads the 'recommended' dependency from WP-012 to WP-003 and explains why Intune/Managed Workplace is useful",
-      "Clearly explains how these three services interact (telemetry + policy enforcement) rather than listing them in isolation"
-    ]
-  },
-  {
-    "id": "test_case_13",
-    "description": "Use 'incompatible' dependency metadata to reason about SASE vs VPN.",
-    "query": "We're happy with our existing VPN concentrator but want to move toward a SASE or Zero Trust model for remote workers and Microsoft 365. If we use your SASE solution, what happens to your VPN concentrator migration project—is it something we still need?",
-    "request_data": {
-      "function_id": "company_1",
-      "llm_provider": "openai",
-      "llm": "gpt-5.2",
-      "prompt_objects": {
-        "query": "We're happy with our existing VPN concentrator but want to move toward a SASE or Zero Trust model for remote workers and Microsoft 365. If we use your SASE solution, what happens to your VPN concentrator migration project—is it something we still need?"
-      },
-      "scope_variables": {},
-      "previous_prompt_outputs": {}
-    },
-    "expected_solution": "The solution should recommend 'Secure Access Service Edge (SASE)' (NET-005) as the relevant offering for modern Zero Trust-style remote access and explicitly note, based on the 'incompatible' dependency metadata, that NET-005 is designed to replace legacy VPN concentrators rather than be combined with 'VPN Concentrator Migration' (NET-007). The answer should therefore say that you generally would not also undertake the NET-007 project if you are adopting NET-005.",
-    "evaluation_criteria": [
-      "Recognizes NET-005 as the SASE/Zero Trust solution for the scenario",
-      "Reads and correctly interprets the 'incompatible' relationship between NET-005 and NET-007",
-      "Explains in plain language that SASE makes a separate VPN concentrator migration project unnecessary",
-      "Avoids recommending both SASE and VPN Concentrator Migration as parallel tracks"
-    ]
-  },
-  {
-    "id": "test_case_14",
-    "description": "Cross-domain reasoning for Teams telephony including licensing dependencies.",
-    "query": "We want to replace our traditional PBX with Teams-based telephony for about 400 users in Switzerland. We already have Microsoft 365 but aren't sure if we own the right licenses. Which offerings from your catalog would you bring in to design and implement this end-to-end?",
-    "request_data": {
-      "function_id": "company_1",
-      "llm_provider": "openai",
-      "llm": "gpt-5.2",
-      "prompt_objects": {
-        "query": "We want to replace our traditional PBX with Teams-based telephony for about 400 users in Switzerland. We already have Microsoft 365 but aren't sure if we own the right licenses. Which offerings from your catalog would you bring in to design and implement this end-to-end?"
-      },
-      "scope_variables": {},
-      "previous_prompt_outputs": {}
-    },
-    "expected_solution": "The solution should propose at least 'Teams Phone System Swiss' (WP-005) as the core telephony project and 'M365 Licensing & Optimization' (WP-004) to validate and adjust Microsoft 365 licensing (Phone System, calling plans, etc.), leveraging the dependency from WP-005 to WP-004. It may additionally mention network-related services (e.g., SD-WAN Swiss Connect (NET-001) or Managed LAN & Wi-Fi (NET-002)) as supporting elements for voice quality, but the core should clearly center on WP-005 plus WP-004.",
-    "evaluation_criteria": [
-      "Includes Teams Phone System Swiss (WP-005) as the main telephony solution",
-      "Includes M365 Licensing & Optimization (WP-004) and ties it to the dependency metadata from WP-005",
-      "Explains at a high level how these two offerings work together (licensing + implementation)",
-      "Optionally suggests relevant network quality services but keeps them secondary to the core solution"
-    ]
-  },
-  {
-    "id": "test_case_15",
-    "description": "Use Billing_Data to reason about SAP AMS pricing for different user counts.",
-    "query": "Roughly how much would we pay per month for SAP AMS Platinum Swiss Support for 80 users today, and what would that grow to if we doubled to 160 named users?",
-    "request_data": {
-      "function_id": "company_1",
-      "llm_provider": "openai",
-      "llm": "gpt-5.2",
-      "prompt_objects": {
-        "query": "Roughly how much would we pay per month for SAP AMS Platinum Swiss Support for 80 users today, and what would that grow to if we doubled to 160 named users?"
-      },
-      "scope_variables": {},
-      "previous_prompt_outputs": {}
-    },
-    "expected_solution": "The solution should look up the SAP AMS Platinum Swiss Support (SAP-002) billing components and explain that the base monthly fee covers up to 100 users, with an extra monthly charge per block of 50 additional users. It should compute or at least describe that 80 users fit into the base fee only, whereas 160 users require the base fee plus two additional 50-user blocks. The answer should present both figures clearly and explain the underlying logic.",
-    "evaluation_criteria": [
-      "Identifies SAP AMS Platinum Swiss Support (SAP-002) as the relevant service",
-      "Correctly interprets the Base Fee 'up to 100 users' and the 'Additional 50 Users' component",
-      "Shows the reasoning that 80 users stay within base, while 160 users require two extra 50-user blocks",
-      "Provides clear monthly pricing outcomes or an explicit formula, not just vague cost descriptions"
-    ]
-  },
-  {
-    "id": "test_case_16",
-    "description": "Multi-service Azure and SAP RISE design with ongoing monitoring.",
-    "query": "We're planning a move to SAP RISE on Azure in Switzerland and also want to land our non-SAP workloads in the same governed Azure foundation and have everything monitored 24/7. Which combination of your services would you propose to cover the Azure foundation, the RISE transition itself, and continuous security monitoring?",
-    "request_data": {
-      "function_id": "company_1",
-      "llm_provider": "openai",
-      "llm": "gpt-5.2",
-      "prompt_objects": {
-        "query": "We're planning a move to SAP RISE on Azure in Switzerland and also want to land our non-SAP workloads in the same governed Azure foundation and have everything monitored 24/7. Which combination of your services would you propose to cover the Azure foundation, the RISE transition itself, and continuous security monitoring?"
-      },
-      "scope_variables": {},
-      "previous_prompt_outputs": {}
-    },
-    "expected_solution": "The solution should bring together at least three key services: 'Azure Swiss Landing Zone' (CLOUD-001) to provide the governed Azure foundation for both SAP and non-SAP workloads; 'SAP RISE Transition Service' (SAP-011), which has a required dependency on CLOUD-001 and focuses on the RISE program specifics; and 'Swiss Managed SOC (24/7)' (SEC-001) for continuous monitoring. The answer should also note that SEC-001 itself depends on Endpoint Security (WP-012) and typically Intune/Managed Workplace (WP-003) to feed endpoint telemetry, and may mention that SAP logs can be forwarded into the SOC as well.",
-    "evaluation_criteria": [
-      "Selects CLOUD-001, SAP-011, and SEC-001 as the core combination and explains the role of each",
-      "Correctly uses the required dependency from SAP-011 to CLOUD-001",
-      "Mentions the downstream dependencies of SEC-001 on WP-012 (and WP-003 as recommended) for telemetry",
-      "Articulates a coherent picture of how foundation, RISE transition, and monitoring work together"
-    ]
-  },
-  {
-    "id": "test_case_17",
-    "description": "Data governance plus AI readiness as a staged consulting path.",
-    "query": "Our data is messy and scattered, and we don't have any formal data owners defined yet, but management wants to introduce AI assistants like Copilot. Which of your consulting services should we start with to get data governance in place and then check AI readiness?",
-    "request_data": {
-      "function_id": "company_1",
-      "llm_provider": "openai",
-      "llm": "gpt-5.2",
-      "prompt_objects": {
-        "query": "Our data is messy and scattered, and we don't have any formal data owners defined yet, but management wants to introduce AI assistants like Copilot. Which of your consulting services should we start with to get data governance in place and then check AI readiness?"
-      },
-      "scope_variables": {},
-      "previous_prompt_outputs": {}
-    },
-    "expected_solution": "The solution should propose a staged approach: first 'Data Strategy & Governance' (CON-006) to define data ownership, governance framework, and classification; then 'Artificial Intelligence Readiness Check' (CON-014), which has a required dependency on CON-006, to assess whether data quality, permissions, and compliance are ready for AI like Copilot. The answer should clearly state that governance comes before AI and briefly summarize what each engagement delivers.",
-    "evaluation_criteria": [
-      "Recommends CON-006 as the foundational data governance engagement",
-      "Recommends CON-014 as the follow-on AI readiness assessment and notes its required dependency on CON-006",
-      "Explains why doing governance first is important (bad data and permissions will break AI scenarios)",
-      "Provides a clear, staged narrative instead of listing the services in an unstructured way"
-    ]
-  },
-  {
-    "id": "test_case_18",
-    "description": "Combine DRaaS, Veeam backup, and Swiss object storage for a ransomware-resilient DR design.",
-    "query": "We want a Swiss-based DR design where we replicate on-prem VMware workloads into Azure Switzerland West or your private cloud, run regular DR drills, and also have immutable offsite backups for ransomware scenarios using Veeam. Which of your services and dependencies would you combine for this?",
-    "request_data": {
-      "function_id": "company_1",
-      "llm_provider": "openai",
-      "llm": "gpt-5.2",
-      "prompt_objects": {
-        "query": "We want a Swiss-based DR design where we replicate on-prem VMware workloads into Azure Switzerland West or your private cloud, run regular DR drills, and also have immutable offsite backups for ransomware scenarios using Veeam. Which of your services and dependencies would you combine for this?"
-      },
-      "scope_variables": {},
-      "previous_prompt_outputs": {}
-    },
-    "expected_solution": "The solution should combine 'Cloud Disaster Recovery (DRaaS)' (CLOUD-015) for continuous VM replication and orchestrated failover, together with 'Veeam Cloud Connect Swiss' (CLOUD-012) for immutable offsite backups, which itself has a required dependency on 'Swiss Object Storage (S3)' (CLOUD-002) as the storage target. It should mention that CLOUD-015 has a recommended dependency on 'VPN Concentrator Migration' (NET-007) to provide secure user access to the DR site. The answer should clearly distinguish between DR replication and backup, and explain how these services interact.",
-    "evaluation_criteria": [
-      "Includes CLOUD-015, CLOUD-012, and CLOUD-002 as core components and describes their roles (DR vs backup vs storage)",
-      "Uses the required dependency from CLOUD-012 to CLOUD-002 correctly",
-      "Mentions the recommended dependency from CLOUD-015 to NET-007 for secure failover access",
-      "Explains how backup and DR complement each other in a ransomware-resilient design instead of conflating them"
-    ]
-  },
-  {
-    "id": "test_case_19",
-    "description": "Filter for standardized recurring security/workplace services versus project work.",
-    "query": "As an enterprise manufacturer we prefer standardized recurring security services rather than one-off projects. Looking at your security and workplace portfolio, which ongoing services would you highlight for threat monitoring, endpoint and mobile protection, and vulnerability management, and which related offerings are more project-like instead of SLAs?",
-    "request_data": {
-      "function_id": "company_1",
-      "llm_provider": "openai",
-      "llm": "gpt-5.2",
-      "prompt_objects": {
-        "query": "As an enterprise manufacturer we prefer standardized recurring security services rather than one-off projects. Looking at your security and workplace portfolio, which ongoing services would you highlight for threat monitoring, endpoint and mobile protection, and vulnerability management, and which related offerings are more project-like instead of SLAs?"
-      },
-      "scope_variables": {},
-      "previous_prompt_outputs": {}
-    },
-    "expected_solution": "The solution should identify key SLA-based, standardized services such as 'Swiss Managed SOC (24/7)' (SEC-001), 'Endpoint Security (Defender XDR)' (WP-012), 'Mobile Threat Defense (MTD)' (SEC-014), and 'Vulnerability Management Service' (SEC-007), and clearly separate them from related project-based engagements like 'Zero Trust Architecture Design' (SEC-009), 'Cloud Access Security Broker (CASB)' (SEC-011), and 'Privileged Access Management (PAM)' (SEC-012). It must use product_type and is_standard flags to justify which services are truly standardized recurring services versus projects.",
-    "evaluation_criteria": [
-      "Returns a focused list of SLA-based, standardized offerings for SOC, endpoint/mobile protection, and vulnerability management",
-      "Correctly classifies selected services as SLA vs Projekt using product_type and is_standard metadata",
-      "Clearly distinguishes recurring services from related project engagements (SEC-009, SEC-011, SEC-012, etc.)",
-      "Presents the result in a way that is understandable to a non-technical stakeholder (e.g., 'run' vs 'change' work)"
-    ]
-  },
-  {
-    "id": "test_case_20",
-    "description": "End-to-end Swiss cloud exit strategy for a regulated mid-market bank, respecting residency and lifecycle state.",
-    "query": "We're a regulated Swiss mid-market bank that wants to exit our on-prem datacenter over the next three years. We want as much as possible to stay hosted in Switzerland, avoid deprecated or preview services, and cover: an Azure landing zone and connectivity, SAP S/4HANA brownfield migration, Swiss-hosted backups and DR, a modern analytics platform, and ongoing security monitoring. Using only offers from your catalog, how would you roughly structure such a transformation and which concrete services would you combine?",
-    "request_data": {
-      "function_id": "company_1",
-      "llm_provider": "openai",
-      "llm": "gpt-5.2",
-      "prompt_objects": {
-        "query": "We're a regulated Swiss mid-market bank that wants to exit our on-prem datacenter over the next three years. We want as much as possible to stay hosted in Switzerland, avoid deprecated or preview services, and cover: an Azure landing zone and connectivity, SAP S/4HANA brownfield migration, Swiss-hosted backups and DR, a modern analytics platform, and ongoing security monitoring. Using only offers from your catalog, how would you roughly structure such a transformation and which concrete services would you combine?"
-      },
-      "scope_variables": {},
-      "previous_prompt_outputs": {}
-    },
-    "expected_solution": "The solution should design a phased roadmap using multiple offerings and constraints from both databases. For example: Azure foundation and connectivity via 'Azure Swiss Landing Zone' (CLOUD-001) and 'Hybrid Cloud Connectivity (ExpressRoute)' (CLOUD-008) or appropriate network projects; SAP migration via 'SAP S/4HANA Brownfield Transformation' (SAP-001) plus suitable run services like 'SAP Basis Gold Operations' (SAP-005) or 'SAP AMS Platinum Swiss Support' (SAP-002); Swiss-hosted backup/DR via 'Swiss Object Storage (S3)' (CLOUD-002), 'Microsoft 365 Swiss Backup' (CLOUD-003), 'Veeam Cloud Connect Swiss' (CLOUD-012), and 'Cloud Disaster Recovery (DRaaS)' (CLOUD-015); analytics via 'Google BigQuery Data Warehouse' (CLOUD-017) or similar, with an explicit note about any non-Swiss or global data residency implications; and ongoing monitoring via 'Swiss Managed SOC (24/7)' (SEC-001) plus its endpoint dependencies. The answer must avoid deprecated/preview services such as SAP-010 and SAP-019, respect data_residency where possible, and clearly call out key dependencies (e.g., SAP-001 recommended SEC-001, SEC-001 requiring WP-012, CLOUD-012 requiring CLOUD-002). It should be structured as a high-level multi-year plan rather than a flat list.",
-    "evaluation_criteria": [
-      "Builds a multi-phase transformation plan that covers landing zone, connectivity, SAP migration, backup/DR, analytics, and security operations",
-      "Selects appropriate concrete services from the catalog for each area and avoids services with lifecycle_status 'Deprecated' or 'Preview'",
-      "Explicitly discusses data residency, favoring Switzerland-hosted options and flagging where services are Global (e.g., CLOUD-017)",
-      "Correctly leverages key dependencies (e.g., SAP-001 → SEC-001, SEC-001 → WP-012, CLOUD-012 → CLOUD-002, SAP-011 → CLOUD-001 if included)",
-      "Presents the answer in a structured, narrative form (phases/waves) that a banking CIO could understand"
-    ]
-  },
-  
-  {
     "id": "test_case_21",
-    "description": "Multi-region active-active architecture with strict latency and data sovereignty constraints.",
-    "query": "We are a Swiss fintech designing a high-frequency trading platform. We need an active-active setup between Zurich and Geneva. Latency between zones must be under 5ms. We need synchronous data replication for our SQL backend and geo-redundant blob storage for 50TB of legal archives. Which combination of your connectivity, database, and storage services meets these latency and redundancy requirements, and what is the estimated monthly TCO including data transfer if we replicate 5TB daily?",
+    "description": "High-Frequency Trading Hybrid Cloud with Physical Isolation.",
+    "query": "We are a Zurich-based HFT (High-Frequency Trading) firm. We need to build a hybrid setup that connects our HQ to a private cage in a Zurich Tier IV datacenter. Requirements: 1) Absolute lowest possible latency connectivity (no shared internet). 2) Physically isolated compute infrastructure for our trading engine (no multi-tenant public cloud). 3) A dedicated security layer to lock down admin access to these trading servers. Please design the architecture using your 'Network', 'Cloud', and 'Security' families and provide the Upfront vs. Monthly TCO.",
     "request_data": {
       "function_id": "company_1",
       "llm_provider": "openai",
       "llm": "gpt-5.2",
       "prompt_objects": {
-        "query": "We are a Swiss fintech designing a high-frequency trading platform. We need an active-active setup between Zurich and Geneva. Latency between zones must be under 5ms. We need synchronous data replication for our SQL backend and geo-redundant blob storage for 50TB of legal archives. Which combination of your connectivity, database, and storage services meets these latency and redundancy requirements, and what is the estimated monthly TCO including data transfer if we replicate 5TB daily?"
+        "query": "We are a Zurich-based HFT (High-Frequency Trading) firm. We need to build a hybrid setup that connects our HQ to a private cage in a Zurich Tier IV datacenter. Requirements: 1) Absolute lowest possible latency connectivity (no shared internet). 2) Physically isolated compute infrastructure for our trading engine (no multi-tenant public cloud). 3) A dedicated security layer to lock down admin access to these trading servers. Please design the architecture using your 'Network', 'Cloud', and 'Security' families and provide the Upfront vs. Monthly TCO."
       },
       "scope_variables": {},
       "previous_prompt_outputs": {}
     },
-    "expected_solution": "The solution must select 'Dark Fiber Connectivity' (NET-003) or 'Hybrid Cloud Connectivity' (CLOUD-008) to meet the <5ms latency requirement, as standard internet (VPN) cannot guarantee this. It should propose 'Managed Database PaaS' (CLOUD-009) with configured Geo-Replication for the SQL backend. For storage, it must select 'Swiss Object Storage (S3)' (CLOUD-002) and calculate the cost for 50TB storage + 5TB daily replication (if applicable under the 'no egress fees' benefit). The answer must explicitly validate the latency feasibility between Zurich and Geneva.",
+    "expected_solution": "The agent must select 'Dark Fiber Connectivity' (NET-003) for the 'Microsecond Latency' requirement. For the compute, it must select 'Private Cloud Dedicated Compute' (CLOUD-014) or 'Swiss VPC' (CLOUD-006) to satisfy the 'Physical Isolation' requirement. For security, it must select 'Privileged Access Management (PAM)' (SEC-012) to lock down admin access ('Keys to the Kingdom'). The TCO calculation must include the high one-time fees for Fiber Splicing and PAM Design.",
     "evaluation_criteria": [
-      "Selects NET-003 or CLOUD-008 for connectivity to ensure <5ms latency",
-      "Proposes CLOUD-009 with Geo-Replication for the database",
-      "Calculates storage TCO: 50TB * price/GB + potential replication/transfer costs if not covered by 'no egress' policy",
-      "Explicitly confirms Swiss data residency for both active nodes"
+      "Selects NET-003 (Dark Fiber) over standard internet/SD-WAN due to latency requirement",
+      "Selects CLOUD-014 (Dedicated Compute) or CLOUD-006 for physical isolation",
+      "Selects SEC-012 (PAM) for admin security",
+      "Calculates TCO correctly: e.g. NET-003 (8.5k One-Time + 1.2k/mo) + CLOUD-014 (2.2k/mo) + SEC-012 (47k One-Time)"
     ]
   },
   {
     "id": "test_case_22",
-    "description": "Complex M&A SAP license consolidation and cloud migration.",
-    "query": "We are acquiring a competitor. We run SAP ECC on-prem with 200 'Professional' and 500 'Limited Professional' users. The target company runs S/4HANA Public Cloud with 150 'Advanced Use' FUEs. We want to consolidate everything into a single Private Cloud (RISE) tenant in Switzerland. Please map our combined user base to the new S/4HANA Cloud license types (FUE), identify any over-licensing, and estimate the new annual subscription cost including the RISE base fee.",
+    "description": "Regulated Banking SAP Migration (Brownfield + Compliance).",
+    "query": "We are a Swiss Private Bank running legacy SAP ECC. We need to migrate to S/4HANA while keeping all historical data (10+ years) for compliance. We are moving to the RISE model. We need a partner to handle the TECHNICAL migration, the ADVISORY for the RISE contract transition, and the implementation of strict 'Firefighter' controls for the new system. Please list the specific service products required and the total one-time project fees.",
     "request_data": {
       "function_id": "company_1",
       "llm_provider": "openai",
       "llm": "gpt-5.2",
       "prompt_objects": {
-        "query": "We are acquiring a competitor. We run SAP ECC on-prem with 200 'Professional' and 500 'Limited Professional' users. The target company runs S/4HANA Public Cloud with 150 'Advanced Use' FUEs. We want to consolidate everything into a single Private Cloud (RISE) tenant in Switzerland. Please map our combined user base to the new S/4HANA Cloud license types (FUE), identify any over-licensing, and estimate the new annual subscription cost including the RISE base fee."
+        "query": "We are a Swiss Private Bank running legacy SAP ECC. We need to migrate to S/4HANA while keeping all historical data (10+ years) for compliance. We are moving to the RISE model. We need a partner to handle the TECHNICAL migration, the ADVISORY for the RISE contract transition, and the implementation of strict 'Firefighter' controls for the new system. Please list the specific service products required and the total one-time project fees."
       },
       "scope_variables": {},
       "previous_prompt_outputs": {}
     },
-    "expected_solution": "The agent must use 'SAP RISE Transition Service' (SAP-011) and potentially 'SAP License Audit Defense' (SAP-017) logic. It needs to map ECC 'Professional' -> S/4HANA 'Advanced Use' (1 FUE) and 'Limited Professional' -> 'Core Use' (e.g., 0.2 FUE). It must then sum the total FUEs: 200 + (500*0.2) + 150 = 450 FUEs. It should then estimate the RISE subscription cost based on this FUE count and the Private Cloud base fee.",
+    "expected_solution": "The agent must distinguish between the technical migration and the commercial transition. It must select 'SAP S/4HANA Brownfield Transformation' (SAP-001) for the 'Keep historical data' requirement. It must select 'SAP RISE Transition Service' (SAP-011) for the 'Advisory/Contract' requirement. It must select 'SAP GRC Access Control Swiss' (SAP-015) for the 'Firefighter' requirement. The One-Time cost sum should be: SAP-001 (12.5k + 85k) + SAP-011 (25k) + SAP-015 (35k).",
     "evaluation_criteria": [
-      "Correctly maps legacy user types to S/4HANA FUEs (Professional=1, Limited=~0.2)",
-      "Calculates the correct total consolidated FUE count (approx. 450)",
-      "Recommends SAP-011 for the migration and contract consolidation",
-      "Provides a plausible TCO estimate based on FUE count and RISE base costs"
+      "Selects SAP-001 (Brownfield) instead of Greenfield",
+      "Selects SAP-011 for the RISE transition advisory",
+      "Selects SAP-015 (GRC) for the Firefighter requirement",
+      "Accurately sums the one-time project fees (~157,500 CHF)"
     ]
   },
   {
@@ -542,7 +100,7 @@
       },
       "scope_variables": {},
       "previous_prompt_outputs": {}
-  },
+    },
     "expected_solution": "This requires a 'bundle' of Network and Workplace services. Key components: 'Dark Fiber Connectivity' (NET-003) or 'SD-WAN Swiss Connect' (NET-001) for redundant 10Gbps. 'Managed LAN & Wi-Fi' (NET-002) for the new office network. 'Meeting Room Modernization' (WP-010) for the boardroom. 'Workplace Strategy' (CON-015) for the move planning. The agent should construct a timeline that sequences connectivity installation *before* the move weekend.",
     "evaluation_criteria": [
       "Includes NET-003 (Dark Fiber) or high-end NET-001 for 10Gbps requirement",
@@ -551,5 +109,4 @@
       "Creates a logical project timeline where connectivity is live before the move date"
     ]
   }
-  
 ]
