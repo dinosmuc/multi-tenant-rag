@@ -12,7 +12,7 @@ DATABASE SCHEMAS
 
 ## SQL DATABASE (Star Schema - Hub and Spoke)
 
-**Database Name:** blccoredemo
+**Database Name:** product_catalog
 **Architecture:** Star Schema with `products` as the central hub
 
 ### Table 1: `products` (The Hub)

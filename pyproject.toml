@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "custom-rag"
 version = "0.1.0"
-description = "Custom RAG Pipeline System for BlueCallom"
+description = "A flexible, provider-agnostic Retrieval-Augmented Generation pipeline system"
 requires-python = ">=3.11"
 dependencies = [
     "Django>=4.2.0,<5.0.0",
@@ -83,7 +83,11 @@ python_files = ["tests.py", "test_*.py", "*_tests.py"]
 testpaths = ["tests"]
 # Exclude test_cases.py - expensive integration tests requiring live API calls
 # Run manually with: python tests/test_cases.py --count N
-addopts = "-v --tb=short --ignore=tests/test_cases.py --ignore=test_cases.py"
+addopts = "-v --tb=short --strict-markers --disable-warnings --ignore=tests/test_cases.py --ignore=test_cases.py"
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+]
 
 [tool.coverage.run]
 source = ["custom_rag"]

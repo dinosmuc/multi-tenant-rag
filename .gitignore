@@ -33,6 +33,7 @@ db.sqlite3
 db.sqlite3-journal
 /media
 /staticfiles
+/static
 
 # Environment Variables
 .env
@@ -46,6 +47,7 @@ db.sqlite3-journal
 *.swo
 *~
 .DS_Store
+Thumbs.db
 
 # Testing
 .pytest_cache/
@@ -61,3 +63,17 @@ dmypy.json
 
 # Ruff
 .ruff_cache/
+
+# Logs
+logs/
+
+# Claude
+CLAUDE.md
+.claude/
+
+# Local docs and scripts (not part of the project)
+project.md
+sql_db.md
+vector_db.md
+test_connections.py
+pytest.ini
