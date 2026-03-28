@@ -1,4 +1,4 @@
-# Custom RAG Pipeline System
+# Multi-Tenant RAG Pipeline System
 
 A flexible, provider-agnostic Retrieval-Augmented Generation (RAG) pipeline framework built with Django. It enables building agentic workflows that combine LLMs with tools for database queries, vector search, and external APIs — with full per-request isolation and automatic resource management.
 
